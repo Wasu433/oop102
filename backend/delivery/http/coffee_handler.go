@@ -3,7 +3,7 @@ package http
 import (
 	"encoding/json"
 	"net/http"
-	"coffee-shop/usecase"
+	"backend/usecase"
 )
 
 // CoffeeHandler รับผิดชอบ endpoint ที่เกี่ยวกับกาแฟ

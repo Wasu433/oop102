@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"coffee-shop/domain"
-	"coffee-shop/usecase"
+	"backend/domain"
+	"backend/usecase"
 	"backend/delivery/http/dto"
 )
 
