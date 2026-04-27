@@ -1,25 +1,9 @@
--- 001_init.sql: create tables
-PRAGMA foreign_keys = ON;
-
-CREATE TABLE IF NOT EXISTS coffees (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  price REAL NOT NULL,
-  emoji TEXT
-);
-
-CREATE TABLE IF NOT EXISTS orders (
-  id TEXT PRIMARY KEY,
-  total REAL NOT NULL,
-  created_at TEXT NOT NULL,
-  status TEXT
-);
-
-CREATE TABLE IF NOT EXISTS order_items (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  order_id TEXT NOT NULL,
-  coffee_id TEXT NOT NULL,
-  quantity INTEGER NOT NULL,
-  FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE CASCADE,
-  FOREIGN KEY(coffee_id) REFERENCES coffees(id)
+-- 001_init.sql
+CREATE TABLE IF NOT EXISTS cars (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    make TEXT NOT NULL,       -- ยี่ห้อ เช่น Toyota, Honda
+    model TEXT NOT NULL,      -- รุ่น เช่น Civic, Corolla
+    year INTEGER NOT NULL,    -- ปี เช่น 2020
+    price REAL NOT NULL,      -- ราคา
+    image_url TEXT            -- ลิงก์รูปภาพ (เผื่อไว้โชว์)
 );

@@ -5,7 +5,7 @@ import (
     "fmt"
     "time"
 
-    "backend/domain"
+    "coffee-shop/domain"
 )
 
 // SQLiteOrderRepo implements domain.OrderRepository using SQLite

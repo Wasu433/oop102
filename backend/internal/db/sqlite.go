@@ -1,14 +1,13 @@
 package db
 
 import (
-    "database/sql"
-    "fmt"
-    "io/fs"
-    "os"
-    "path/filepath"
-    "sort"
+	"database/sql"
+	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
 
-    _ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // OpenAndMigrate opens sqlite at path and runs all SQL files in migrationsDir (sorted by name)

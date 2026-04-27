@@ -2,6 +2,14 @@ package dto
 
 import "time"
 
+// CoffeeResponse สำหรับส่งข้อมูลกาแฟกลับ API
+type CoffeeResponse struct {
+	ID    string  `json:"id"`
+	Name  string  `json:"name"`
+	Price float64 `json:"price"`
+	Emoji string  `json:"emoji"`
+}
+
 // OrderItemCreateRequest สำหรับรับข้อมูล item ในออเดอร์จาก API
 // แยกออกจาก domain เพื่อให้ API สามารถเปลี่ยนได้โดยไม่กระทบ business logic
 type OrderItemCreateRequest struct {
