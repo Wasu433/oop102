@@ -74,11 +74,13 @@ func (h *CarHandler) handleGetByID(w http.ResponseWriter, r *http.Request, id st
 	json.NewEncoder(w).Encode(resp)
 }
 
-// handleSearch = GET /api/v1/cars/search?brand=Toyota&model=Yaris&year=2022
+// handleSearch = GET /api/v1/cars/search?brand=Toyota&model=Yaris&year=2022&minPrice=500000&maxPrice=2000000
 func (h *CarHandler) handleSearch(w http.ResponseWriter, r *http.Request) {
 	brand := r.URL.Query().Get("brand")
 	model := r.URL.Query().Get("model")
 	yearStr := r.URL.Query().Get("year")
+	minPriceStr := r.URL.Query().Get("minPrice")
+	maxPriceStr := r.URL.Query().Get("maxPrice")
 
 	var year int
 	if yearStr != "" {
@@ -90,6 +92,32 @@ func (h *CarHandler) handleSearch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// ถ้ามีการค้นหาตามราคา
+	if minPriceStr != "" || maxPriceStr != "" {
+		minPrice, err := strconv.ParseFloat(minPriceStr, 64)
+		if minPriceStr != "" && err != nil {
+			http.Error(w, "invalid minPrice format", http.StatusBadRequest)
+			return
+		}
+
+		maxPrice, err := strconv.ParseFloat(maxPriceStr, 64)
+		if maxPriceStr != "" && err != nil {
+			http.Error(w, "invalid maxPrice format", http.StatusBadRequest)
+			return
+		}
+
+		cars, err := h.carUC.GetAffordableCars(minPrice, maxPrice)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		resp := mapCarsToResponse(cars)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	// ค้นหาตาม brand/model/year ตามปกติ
 	cars, err := h.carUC.SearchCars(brand, model, year)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

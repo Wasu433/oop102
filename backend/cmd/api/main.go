@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-    // Prefer SQLite for persistence. Migrations are in backend/database/migrations
+    // Database setup
     dbPath := "database/app.db"
     migrationsDir := "database/migrations"
     dbConn, err := db.OpenAndMigrate(dbPath, migrationsDir)
@@ -20,19 +20,55 @@ func main() {
     }
     defer dbConn.Close()
 
-    // create sqlite-backed repositories
-    coffeeRepo := sqlite.NewSQLiteCoffeeRepo(dbConn)
-    orderRepo := sqlite.NewSQLiteOrderRepo(dbConn)
+    // ========== Rate Limiting Setup ==========
+    userRepo := sqlite.NewSQLiteUserRepository(dbConn)
+    keyRepo := sqlite.NewSQLiteAPIKeyRepository(dbConn)
+    usageRepo := sqlite.NewSQLiteAPIUsageRepository(dbConn)
 
-    orderUC := usecase.NewOrderUseCase(coffeeRepo, orderRepo)
+    rateLimitUC := usecase.NewRateLimitUseCase(userRepo, keyRepo, usageRepo)
 
+    // ========== Car System Setup ==========
+    // Create SQLite repository for cars
+    carRepo := sqlite.NewSQLiteCarRepository(dbConn)
+
+    // Create usecase (business logic)
+    carUC := usecase.NewCarUseCase(carRepo)
+
+    // Create handler (HTTP delivery)
+    carHandler := deliveryhttp.NewCarHandler(carUC)
+
+    // ========== API Key Management Handler ==========
+    apiKeyHandler := deliveryhttp.NewAPIKeyHandler(userRepo, keyRepo, rateLimitUC)
+
+    // ========== Setup routing ==========
     mux := stdhttp.NewServeMux()
-    apiPrefix := "/api"
-    mux.Handle(apiPrefix+"/coffees", deliveryhttp.NewCoffeeHandler(orderUC))
-    mux.Handle(apiPrefix+"/orders", deliveryhttp.NewOrderHandler(orderUC))
-    mux.Handle(apiPrefix+"/summary", deliveryhttp.NewSummaryHandler(orderUC))
+    apiPrefix := "/api/v1"
 
-    log.Println("API server listening :8080")
+    // Rate limit middleware - wrap car handler
+    rateLimitedCarHandler := deliveryhttp.NewRateLimitMiddleware(rateLimitUC, carHandler)
+
+    // Car routes (with rate limiting)
+    mux.Handle(apiPrefix+"/cars", rateLimitedCarHandler)
+
+    // API Key management routes (no rate limiting)
+    mux.HandleFunc(apiPrefix+"/users", apiKeyHandler.HandleCreateUser)
+    mux.HandleFunc(apiPrefix+"/keys", apiKeyHandler.HandleCreateAPIKey)
+    mux.HandleFunc(apiPrefix+"/rate-limit", apiKeyHandler.HandleGetRateLimitInfo)
+
+    log.Println("🚗 Car API server listening on :8080")
+    log.Println("\n=== Car API Endpoints ===")
+    log.Println("  GET  /api/v1/cars")
+    log.Println("  GET  /api/v1/cars/{id}")
+    log.Println("  GET  /api/v1/cars/search?brand=...&minPrice=...&maxPrice=...")
+    log.Println("\n=== API Key Management Endpoints ===")
+    log.Println("  POST /api/v1/users           - สร้าง user ใหม่")
+    log.Println("  POST /api/v1/keys            - สร้าง API key")
+    log.Println("  GET  /api/v1/rate-limit      - ดูสถานะ rate limit (ต้องใช้ X-API-Key header)")
+    log.Println("\n=== Rate Limiting ===")
+    log.Println("  Free tier : 100 calls/day")
+    log.Println("  Pro tier  : 10000 calls/day")
+    log.Println("\nUse header: X-API-Key: <your_key>")
+
     if err := stdhttp.ListenAndServe(":8080", mux); err != nil {
         log.Fatalf("server failed: %v", err)
     }

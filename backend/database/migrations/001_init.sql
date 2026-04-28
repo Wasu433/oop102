@@ -5,5 +5,8 @@ CREATE TABLE IF NOT EXISTS cars (
     model TEXT NOT NULL,      -- รุ่น เช่น Civic, Corolla
     year INTEGER NOT NULL,    -- ปี เช่น 2020
     price REAL NOT NULL,      -- ราคา
+    color TEXT,               -- สี เช่น White, Black, Blue
+    fuel TEXT,                -- เชื้อเพลิง เช่น Petrol, Diesel, Hybrid, Electric
+    mileage INTEGER,          -- ระยะทาง (km)
     image_url TEXT            -- ลิงก์รูปภาพ (เผื่อไว้โชว์)
 );
