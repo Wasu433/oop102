@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"backend/domain"
@@ -34,7 +35,7 @@ func NewAPIKeyHandler(
 
 type CreateUserRequest struct {
 	Email string `json:"email"`
-	Tier  string `json:"tier"` // "free" หรือ "pro"
+	Tier  string `json:"tier"` // "free", "pro" หรือ "enterprise"
 }
 
 type CreateAPIKeyRequest struct {
@@ -78,12 +79,23 @@ func (h *APIKeyHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	tier := strings.ToLower(strings.TrimSpace(req.Tier))
+	if tier == "" {
+		tier = domain.TierFree
+	}
+	switch tier {
+	case domain.TierFree, domain.TierPro, domain.TierEnterprise:
+	default:
+		http.Error(w, "invalid tier", http.StatusBadRequest)
+		return
+	}
+
 	// สร้าง user ใหม่
 	userID := generateAPIKey() // ใช้เป็น user ID
 	user := &domain.User{
 		ID:        userID,
 		Email:     req.Email,
-		Tier:      req.Tier,
+		Tier:      tier,
 		CreatedAt: time.Now().Format(time.RFC3339),
 		UpdatedAt: time.Now().Format(time.RFC3339),
 	}

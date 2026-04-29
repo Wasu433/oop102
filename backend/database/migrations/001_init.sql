@@ -10,3 +10,6 @@ CREATE TABLE IF NOT EXISTS cars (
     mileage INTEGER,          -- ระยะทาง (km)
     image_url TEXT            -- ลิงก์รูปภาพ (เผื่อไว้โชว์)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cars_unique
+ON cars (make, model, year, price, color, fuel, mileage);

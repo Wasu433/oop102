@@ -1,4 +1,4 @@
-INSERT INTO cars (make, model, year, price, color, fuel, mileage, image_url) VALUES 
+INSERT OR IGNORE INTO cars (make, model, year, price, color, fuel, mileage, image_url) VALUES 
 ('Honda', 'Civic FE', 2023, 964900, 'White', 'Petrol', 5000, ''),
 ('Toyota', 'Corolla Cross', 2023, 999000, 'Silver', 'Hybrid', 8000, ''),
 ('Tesla', 'Model 3', 2024, 1599000, 'Black', 'Electric', 1000, ''),

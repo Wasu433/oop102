@@ -4,7 +4,7 @@ package domain
 type User struct {
 	ID        string
 	Email     string
-	Tier      string // "free" หรือ "pro"
+	Tier      string // "free", "pro" หรือ "enterprise"
 	CreatedAt string
 	UpdatedAt string
 }
@@ -39,14 +39,16 @@ type RateLimit struct {
 
 // Tier constants
 const (
-	TierFree = "free"
-	TierPro  = "pro"
+	TierFree       = "free"
+	TierPro        = "pro"
+	TierEnterprise = "enterprise"
 )
 
 // Rate limit values
 const (
-	FreeTierLimit = 100      // 100 requests/day
-	ProTierLimit  = 10000    // 10,000 requests/day
+	FreeTierLimit       = 100      // 100 requests/day
+	ProTierLimit        = 10000    // 10,000 requests/day
+	EnterpriseTierLimit = 100000   // 100,000 requests/day
 )
 
 // UserRepository = interface สำหรับ user storage

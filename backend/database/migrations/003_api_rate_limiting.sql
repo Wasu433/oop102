@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
-    tier TEXT NOT NULL DEFAULT 'free',  -- 'free' หรือ 'pro'
+    tier TEXT NOT NULL DEFAULT 'free',  -- 'free', 'pro' หรือ 'enterprise'
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );

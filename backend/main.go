@@ -4,8 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	"database/sql"
-
 	httphandlers "backend/delivery/http"
 	carUsecase "backend/usecase"
 	sqliteRepo "backend/repository/sqlite"
