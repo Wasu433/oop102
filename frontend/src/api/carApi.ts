@@ -31,6 +31,8 @@ const fetchWithHeaders = async (url: string, options: RequestInit = {}) => {
     },
   });
 };
+
+export interface Car {
   id: string;
   brand: string;
   model: string;
