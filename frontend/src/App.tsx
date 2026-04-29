@@ -1,23 +1,28 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
-import { CarListPage } from './pages/CarListPage'
-import { CarDetailPage } from './pages/CarDetailPage'
+import PricingPage from './pages/PricingPage'
+import ApiPage from './pages/ApiPage'
+import ContactPage from './pages/ContactPage'
 
 export default function App() {
   return (
     <Router>
-      <Routes>
-        {/* Coffee Shop */}
-        <Route path="/" element={<HomePage />} />
-        
-        {/* Car Marketplace */}
-        <Route path="/cars" element={<CarListPage />} />
-        <Route path="/car/:id" element={<CarDetailPage />} />
-        
-        {/* Redirect unknown paths to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-1">
+          <Routes>
+            <Route path="/"        element={<HomePage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/api"     element={<ApiPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="*"        element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </Router>
   )
 }

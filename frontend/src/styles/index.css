@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-base text-gray-800 antialiased; }
+}
+
+@layer components {
+  /* Typography */
+  .eyebrow {
+    @apply text-accent text-xs font-medium uppercase tracking-[0.08em];
+  }
+  .section-title {
+    @apply text-3xl font-medium text-navy leading-snug;
+  }
+  .section-sub {
+    @apply text-gray-500 leading-relaxed;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-medium
+           hover:bg-secondary transition-colors duration-150 inline-block whitespace-nowrap;
+  }
+  .btn-secondary {
+    @apply bg-white text-navy border border-rim px-5 py-2.5 rounded-lg text-sm font-medium
+           hover:border-secondary hover:text-secondary transition-all duration-150 inline-block whitespace-nowrap;
+  }
+  .btn-ghost {
+    @apply text-accent text-sm font-medium hover:text-secondary transition-colors duration-150 inline-flex items-center gap-1;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-xl border border-rim shadow-card;
+  }
+  .card-hover {
+    @apply card hover:border-accent hover:shadow-md transition-all duration-200;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1.5 bg-highlight text-navy text-xs font-medium
+           px-3 py-1 rounded-full border border-accent/20;
+  }
+
+  /* Form inputs */
+  .input {
+    @apply w-full bg-white border border-rim rounded-lg px-4 py-2.5 text-sm text-gray-800
+           placeholder-gray-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20
+           transition-colors duration-150;
+  }
+
+  /* Code blocks */
+  .code-block {
+    @apply bg-navy text-gray-100 rounded-xl p-5 font-mono text-xs leading-relaxed overflow-x-auto;
+  }
+}

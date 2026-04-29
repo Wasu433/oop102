@@ -1,0 +1,221 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+
+const plans = [
+  {
+    name: 'Starter',
+    monthly: 0,
+    annual: 0,
+    note: 'เหมาะสำหรับโปรเจกต์ส่วนตัวและต้นแบบ',
+    cta: 'เริ่มต้นฟรี',
+    ctaStyle: 'btn-secondary',
+    features: [
+      '500 requests / เดือน',
+      'เข้าถึง REST API',
+      'ค้นหายี่ห้อและรุ่นรถ',
+      'ผลลัพธ์เป็น JSON',
+      'เอกสาร OpenAPI',
+      'การสนับสนุนจากชุมชน',
+    ],
+  },
+  {
+    name: 'Pro',
+    monthly: 990,
+    annual: 792,
+    note: 'สำหรับ startup และแอปที่ใช้งานจริง',
+    cta: 'ทดลองใช้ Pro ฟรี',
+    ctaStyle: 'btn-primary',
+    popular: true,
+    features: [
+      '50,000 requests / เดือน',
+      'ฟีเจอร์ทุกอย่างของ Starter',
+      'ประวัติราคา 12 เดือน',
+      'กรองข้อมูลขั้นสูง',
+      'ส่งออก CSV และ JSON จำนวนมาก',
+      'SLA อัปไทม์ 99.9%',
+      'อีเมลสนับสนุนแบบ priority',
+    ],
+  },
+  {
+    name: 'Enterprise',
+    monthly: null,
+    annual: null,
+    note: 'สำหรับองค์กรที่ต้องการปริมาณและความต้องการพิเศษ',
+    cta: 'ติดต่อฝ่ายขาย',
+    ctaStyle: 'btn-secondary',
+    features: [
+      'ไม่จำกัด requests',
+      'ฟีเจอร์ทุกอย่างของ Pro',
+      'ประวัติราคาเต็มรูปแบบ',
+      'การแจ้งเตือน Webhook',
+      'ผู้จัดการบัญชีเฉพาะ',
+      'การเสริมข้อมูลแบบกำหนดเอง',
+      'SLA และใบแจ้งหนี้แบบกำหนดเอง',
+      'การสนับสนุน 24/7 แบบ priority',
+    ],
+  },
+]
+
+const faqs = [
+  {
+    q: 'สามารถอัปเกรดหรือดาวน์เกรดแผนได้ทุกเมื่อหรือไม่?',
+    a: 'ได้เลย การเปลี่ยนแผนมีผลทันที เครดิตส่วนต่างจะถูกคำนวณในใบแจ้งหนี้ถัดไป',
+  },
+  {
+    q: 'จะเกิดอะไรขึ้นเมื่อใช้ requests เกินโควต้า?',
+    a: 'Requests ที่เกินจะได้รับ status 429 คุณสามารถอัปเกรดแผนได้ทันทีหรือซื้อ credits เพิ่มได้',
+  },
+  {
+    q: 'Pro มีช่วงทดลองใช้ฟรีหรือไม่?',
+    a: 'มีครับ/ค่ะ Pro ทดลองใช้ฟรี 14 วันพร้อมฟีเจอร์ครบถ้วน ไม่ต้องใส่ข้อมูลบัตรเครดิต',
+  },
+  {
+    q: 'นับ "request" อย่างไร?',
+    a: 'ทุกการเรียก API ไม่ว่า endpoint ใดนับเป็น 1 request ส่วน response ที่ cache ไว้จะไม่นับ',
+  },
+  {
+    q: 'มีส่วนลดสำหรับการชำระรายปีหรือไม่?',
+    a: 'การชำระรายปีประหยัด 20% สำหรับแผน Pro ส่วนราคา Enterprise เจรจาต่อสัญญา',
+  },
+]
+
+const Check = () => (
+  <svg className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+  </svg>
+)
+
+export default function PricingPage() {
+  const [annual, setAnnual] = useState(false)
+  const [openFaq, setOpenFaq] = useState(null)
+
+  return (
+    <div className="bg-base min-h-screen">
+
+      {/* หัวข้อ */}
+      <section className="py-16 text-center">
+        <div className="max-w-2xl mx-auto px-6">
+          <span className="eyebrow mb-3 block">ราคา</span>
+          <h1 className="text-4xl font-medium text-navy mb-4">ราคาที่เรียบง่ายและโปร่งใส</h1>
+          <p className="text-gray-500">
+            เริ่มต้นฟรี ขยายตามการเติบโตของคุณ ทุกแผนรวมการเข้าถึง API เต็มรูปแบบและเอกสารครบถ้วน
+          </p>
+
+          {/* สวิตช์รายเดือน / รายปี */}
+          <div className="inline-flex items-center gap-3 mt-8 bg-white border border-rim rounded-lg px-4 py-2.5">
+            <span className={`text-sm ${!annual ? 'text-navy font-medium' : 'text-gray-400'}`}>รายเดือน</span>
+            <button
+              onClick={() => setAnnual(!annual)}
+              className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${annual ? 'bg-navy' : 'bg-rim'}`}
+              aria-label="สลับรายปี/รายเดือน"
+            >
+              <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${annual ? 'translate-x-5' : ''}`} />
+            </button>
+            <span className={`text-sm ${annual ? 'text-navy font-medium' : 'text-gray-400'}`}>
+              รายปี
+              <span className="ml-1.5 text-[10px] font-semibold uppercase bg-highlight text-accent px-1.5 py-0.5 rounded-full">
+                –20%
+              </span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* แผนราคา */}
+      <section className="max-w-6xl mx-auto px-6 pb-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          {plans.map((plan) => {
+            const price = plan.monthly === null ? null : annual ? plan.annual : plan.monthly
+            return (
+              <div
+                key={plan.name}
+                className={`rounded-2xl border p-8 relative ${
+                  plan.popular
+                    ? 'bg-highlight border-secondary shadow-md'
+                    : 'bg-white border-rim shadow-card'
+                }`}
+              >
+                {plan.popular && (
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-navy text-white text-[10px] font-semibold uppercase tracking-wider px-4 py-1 rounded-full whitespace-nowrap">
+                    ยอดนิยม
+                  </span>
+                )}
+
+                <h2 className="text-navy font-medium text-lg mb-1">{plan.name}</h2>
+                <p className="text-gray-500 text-sm mb-5">{plan.note}</p>
+
+                <div className="mb-6">
+                  {price === null ? (
+                    <span className="text-3xl font-medium text-navy">กำหนดเอง</span>
+                  ) : price === 0 ? (
+                    <span className="text-3xl font-medium text-navy">ฟรี</span>
+                  ) : (
+                    <>
+                      <span className="text-3xl font-medium text-navy">฿{price.toLocaleString()}</span>
+                      <span className="text-gray-400 text-sm ml-1">/ เดือน</span>
+                    </>
+                  )}
+                  {annual && price > 0 && (
+                    <p className="text-xs text-accent mt-1">ชำระรายปี (฿{(price * 12).toLocaleString()} / ปี)</p>
+                  )}
+                </div>
+
+                <Link
+                  to="/contact"
+                  className={`block text-center w-full mb-7 ${plan.ctaStyle}`}
+                >
+                  {plan.cta}
+                </Link>
+
+                <ul className="space-y-3">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm text-gray-600">
+                      <Check />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
+
+        <p className="text-center text-sm text-gray-400 mt-8">
+          ต้องการแผนแบบกำหนดเอง?{' '}
+          <Link to="/contact" className="text-accent hover:text-secondary transition-colors">
+            ติดต่อทีมขายของเรา →
+          </Link>
+        </p>
+      </section>
+
+      {/* คำถามที่พบบ่อย */}
+      <section className="bg-white py-20">
+        <div className="max-w-2xl mx-auto px-6">
+          <h2 className="section-title text-center mb-10">คำถามที่พบบ่อย</h2>
+          <div className="space-y-3">
+            {faqs.map(({ q, a }, i) => (
+              <div key={i} className="card">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left"
+                >
+                  <span className="text-navy text-sm font-medium">{q}</span>
+                  <svg
+                    className={`w-4 h-4 text-gray-400 flex-shrink-0 ml-4 transition-transform ${openFaq === i ? 'rotate-180' : ''}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {openFaq === i && (
+                  <p className="px-5 pb-4 text-sm text-gray-500 leading-relaxed border-t border-rim pt-3">{a}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+    </div>
+  )
+}
