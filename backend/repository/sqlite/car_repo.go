@@ -21,7 +21,7 @@ func NewSQLiteCarRepository(db *sql.DB) *SQLiteCarRepository {
 func (r *SQLiteCarRepository) FindByID(id string) (*domain.Car, error) {
 	var car domain.Car
 	row := r.db.QueryRow(
-		"SELECT id, make, model, year, price, color, fuel, mileage FROM cars WHERE id = ?",
+		"SELECT id,  brand , model, year, price, color, fuel, mileage FROM cars WHERE id = ?",
 		id,
 	)
 
@@ -39,7 +39,7 @@ func (r *SQLiteCarRepository) FindByID(id string) (*domain.Car, error) {
 // FindAll ดึงรถทั้งหมด
 func (r *SQLiteCarRepository) FindAll() ([]domain.Car, error) {
 	rows, err := r.db.Query(
-		"SELECT id, make, model, year, price, color, fuel, mileage FROM cars ORDER BY id",
+		"SELECT id,  brand , model, year, price, color, fuel, mileage FROM cars ORDER BY id",
 	)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (r *SQLiteCarRepository) FindAll() ([]domain.Car, error) {
 // FindByBrand ค้นหารถตามยี่ห้อ
 func (r *SQLiteCarRepository) FindByBrand(brand string) ([]domain.Car, error) {
 	rows, err := r.db.Query(
-		"SELECT id, make, model, year, price, color, fuel, mileage FROM cars WHERE make = ? ORDER BY id",
+		"SELECT id,  brand , model, year, price, color, fuel, mileage FROM cars WHERE  brand  = ? ORDER BY id",
 		brand,
 	)
 	if err != nil {
@@ -93,7 +93,7 @@ func (r *SQLiteCarRepository) FindByBrand(brand string) ([]domain.Car, error) {
 
 // FindByYearBrandModel ค้นหารถตามปี ยี่ห้อ และรุ่น
 func (r *SQLiteCarRepository) FindByYearBrandModel(year int, brand, model string) ([]domain.Car, error) {
-	query := "SELECT id, make, model, year, price, color, fuel, mileage FROM cars WHERE 1=1"
+	query := "SELECT id, brand , model, year, price, color, fuel, mileage FROM cars WHERE 1=1"
 	var args []interface{}
 
 	if year > 0 {
@@ -102,7 +102,7 @@ func (r *SQLiteCarRepository) FindByYearBrandModel(year int, brand, model string
 	}
 
 	if brand != "" {
-		query += " AND make = ?"
+		query += " AND  brand = ?"
 		args = append(args, brand)
 	}
 
@@ -139,7 +139,7 @@ func (r *SQLiteCarRepository) FindByYearBrandModel(year int, brand, model string
 // FindByPriceRange ค้นหารถในช่วงราคา
 func (r *SQLiteCarRepository) FindByPriceRange(minPrice, maxPrice float64) ([]domain.Car, error) {
 	rows, err := r.db.Query(
-		"SELECT id, make, model, year, price, color, fuel, mileage FROM cars WHERE price >= ? AND price <= ? ORDER BY price",
+		"SELECT id,  brand , model, year, price, color, fuel, mileage FROM cars WHERE price >= ? AND price <= ? ORDER BY price",
 		minPrice,
 		maxPrice,
 	)

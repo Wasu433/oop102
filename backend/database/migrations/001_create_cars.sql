@@ -1,23 +1,21 @@
--- 001_init.sql
-
 CREATE TABLE IF NOT EXISTS cars (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    brand TEXT NOT NULL,         -- ยี่ห้อ เช่น Toyota, Honda
-    model TEXT NOT NULL,         -- รุ่น เช่น Civic, Corolla
-    year INTEGER NOT NULL,       -- ปี เช่น 2020
+    brand TEXT NOT NULL,
+    model TEXT NOT NULL,
+    year INTEGER NOT NULL,
 
-    price NUMERIC(12,2),         -- ราคา
-    color TEXT,                  -- สี
-    fuel TEXT,                   -- Petrol, Diesel, Hybrid, Electric
-    mileage INTEGER,             -- ระยะทาง (km)
+    price REAL,
+    color TEXT,
+    fuel TEXT,
+    mileage INTEGER,
 
-    location TEXT,               -- เช่น Bangkok, Tokyo
-    image_url TEXT,              -- รูปภาพ
-    source_url TEXT,             -- ลิงก์จาก API ภายนอก
+    location TEXT,
+    image_url TEXT,
+    source_url TEXT,
 
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ป้องกันข้อมูลซ้ำ
