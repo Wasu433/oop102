@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { loadSession, clearSession } from '../api/authApi'
 
 const navLinks = [
   { to: '/', label: 'หน้าแรก' },
@@ -11,6 +12,16 @@ const navLinks = [
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const user = loadSession()
+
+  const handleLogout = () => {
+    clearSession()
+    setOpen(false)
+    navigate('/')
+    // force re-render
+    window.location.reload()
+  }
 
   return (
     <header className="bg-white border-b border-rim sticky top-0 z-50">
@@ -42,12 +53,28 @@ export default function Navbar() {
 
         {/* ปุ่ม CTA หน้าจอใหญ่ */}
         <div className="hidden md:flex items-center gap-4">
-          <Link to="/contact" className="text-sm text-gray-500 hover:text-navy transition-colors">
-            เข้าสู่ระบบ
-          </Link>
-          <Link to="/pricing" className="btn-primary py-2 px-4 text-sm">
-            รับ API Key
-          </Link>
+          {user ? (
+            <>
+              <span className="text-sm text-gray-600">
+                สวัสดี, <span className="font-medium text-navy">{user.name || user.email}</span>
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-gray-500 hover:text-navy transition-colors"
+              >
+                ออกจากระบบ
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="text-sm text-gray-500 hover:text-navy transition-colors">
+                เข้าสู่ระบบ
+              </Link>
+              <Link to="/register" className="btn-primary py-2 px-4 text-sm">
+                สมัครสมาชิก
+              </Link>
+            </>
+          )}
         </div>
 
         {/* ปุ่มเมนูมือถือ */}
@@ -83,14 +110,37 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
-          <div className="pt-3 border-t border-rim mt-3">
-            <Link
-              to="/pricing"
-              onClick={() => setOpen(false)}
-              className="btn-primary block text-center w-full"
-            >
-              รับ API Key
-            </Link>
+          <div className="pt-3 border-t border-rim mt-3 space-y-2">
+            {user ? (
+              <>
+                <p className="text-sm text-gray-500 py-1">
+                  สวัสดี, <span className="font-medium text-navy">{user.name || user.email}</span>
+                </p>
+                <button
+                  onClick={handleLogout}
+                  className="btn-secondary block text-center w-full"
+                >
+                  ออกจากระบบ
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={() => setOpen(false)}
+                  className="btn-secondary block text-center w-full"
+                >
+                  เข้าสู่ระบบ
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setOpen(false)}
+                  className="btn-primary block text-center w-full"
+                >
+                  สมัครสมาชิก
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -19,9 +19,9 @@ const plans = [
     ],
   },
   {
-    name: 'Pro',
-    monthly: 990,
-    annual: 792,
+    name: 'Standard',
+    monthly: 299,
+    annual: 2870,
     note: 'สำหรับ startup และแอปที่ใช้งานจริง',
     cta: 'ทดลองใช้ Pro ฟรี',
     ctaStyle: 'btn-primary',
@@ -37,11 +37,11 @@ const plans = [
     ],
   },
   {
-    name: 'Enterprise',
-    monthly: null,
-    annual: null,
+    name: 'Pro',
+    monthly: 599,
+    annual: 5750,
     note: 'สำหรับองค์กรที่ต้องการปริมาณและความต้องการพิเศษ',
-    cta: 'ติดต่อฝ่ายขาย',
+    cta: 'อัพเกรดเป็น Pro',
     ctaStyle: 'btn-secondary',
     features: [
       'ไม่จำกัด requests',
@@ -75,7 +75,7 @@ const faqs = [
   },
   {
     q: 'มีส่วนลดสำหรับการชำระรายปีหรือไม่?',
-    a: 'การชำระรายปีประหยัด 20% สำหรับแผน Pro ส่วนราคา Enterprise เจรจาต่อสัญญา',
+    a: 'การชำระรายปีประหยัด 20% สำหรับแผน Standard ส่วนราคา Pro ประหยัด 20%',
   },
 ]
 

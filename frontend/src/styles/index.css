@@ -1,60 +1,112 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.js";
+
+:root {
+  --base: #f8fafc;
+  --navy: #0f172a;
+  --accent: #3b82f6;
+  --secondary: #1d4ed8;
+  --rim: #e5e7eb;
+  --highlight: #eff6ff;
+}
 
 @layer base {
-  html { scroll-behavior: smooth; }
-  body { @apply bg-base text-gray-800 antialiased; }
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--base);
+    color: #1f2937;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 @layer components {
-  /* Typography */
   .eyebrow {
-    @apply text-accent text-xs font-medium uppercase tracking-[0.08em];
+    color: var(--accent);
+    @apply text-xs font-medium uppercase tracking-[0.08em];
   }
+
   .section-title {
-    @apply text-3xl font-medium text-navy leading-snug;
+    color: var(--navy);
+    @apply text-3xl font-medium leading-snug;
   }
+
   .section-sub {
     @apply text-gray-500 leading-relaxed;
   }
 
-  /* Buttons */
   .btn-primary {
-    @apply bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-medium
-           hover:bg-secondary transition-colors duration-150 inline-block whitespace-nowrap;
+    background: var(--navy);
+    @apply text-white px-5 py-2.5 rounded-lg text-sm font-medium
+           transition-colors duration-150 inline-block whitespace-nowrap;
   }
+
+  .btn-primary:hover {
+    background: var(--secondary);
+  }
+
   .btn-secondary {
-    @apply bg-white text-navy border border-rim px-5 py-2.5 rounded-lg text-sm font-medium
-           hover:border-secondary hover:text-secondary transition-all duration-150 inline-block whitespace-nowrap;
+    color: var(--navy);
+    border-color: var(--rim);
+    @apply bg-white border px-5 py-2.5 rounded-lg text-sm font-medium
+           transition-all duration-150 inline-block whitespace-nowrap;
   }
+
+  .btn-secondary:hover {
+    color: var(--secondary);
+    border-color: var(--secondary);
+  }
+
   .btn-ghost {
-    @apply text-accent text-sm font-medium hover:text-secondary transition-colors duration-150 inline-flex items-center gap-1;
+    color: var(--accent);
+    @apply text-sm font-medium transition-colors duration-150 inline-flex items-center gap-1;
   }
 
-  /* Cards */
+  .btn-ghost:hover {
+    color: var(--secondary);
+  }
+
   .card {
-    @apply bg-white rounded-xl border border-rim shadow-card;
+    border-color: var(--rim);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    @apply bg-white rounded-xl border;
   }
+
   .card-hover {
-    @apply card hover:border-accent hover:shadow-md transition-all duration-200;
+    border-color: var(--rim);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    @apply bg-white rounded-xl border transition-all duration-200;
   }
 
-  /* Badge */
+  .card-hover:hover {
+    border-color: var(--accent);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+  }
+
   .badge {
-    @apply inline-flex items-center gap-1.5 bg-highlight text-navy text-xs font-medium
-           px-3 py-1 rounded-full border border-accent/20;
+    background: var(--highlight);
+    color: var(--navy);
+    border-color: rgba(59, 130, 246, 0.2);
+    @apply inline-flex items-center gap-1.5 text-xs font-medium
+           px-3 py-1 rounded-full border;
   }
 
-  /* Form inputs */
   .input {
-    @apply w-full bg-white border border-rim rounded-lg px-4 py-2.5 text-sm text-gray-800
-           placeholder-gray-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20
-           transition-colors duration-150;
+    border-color: var(--rim);
+    @apply w-full bg-white border rounded-lg px-4 py-2.5 text-sm text-gray-800
+           placeholder-gray-400 focus:outline-none transition-colors duration-150;
   }
 
-  /* Code blocks */
+  .input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+  }
+
   .code-block {
-    @apply bg-navy text-gray-100 rounded-xl p-5 font-mono text-xs leading-relaxed overflow-x-auto;
+    background: var(--navy);
+    @apply text-gray-100 rounded-xl p-5 font-mono text-xs leading-relaxed overflow-x-auto;
   }
 }

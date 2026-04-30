@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
-	"path/filepath"
 	stdhttp "net/http"
 
 	deliveryhttp "backend/delivery/http"
@@ -13,13 +11,9 @@ import (
 )
 
 func main() {
-	dbDir := findDatabaseDir()
-	dbPath := filepath.Join(dbDir, "app.db")
-	migrationsDir := filepath.Join(dbDir, "migrations")
-
-	dbConn, err := db.OpenAndMigrate(dbPath, migrationsDir)
+	dbConn, err := db.OpenAndMigrate("", "")
 	if err != nil {
-		log.Fatalf("open db: %v", err)
+		log.Fatalf("connect db: %v", err)
 	}
 	defer dbConn.Close()
 
@@ -34,46 +28,25 @@ func main() {
 	carHandler := deliveryhttp.NewCarHandler(carUC)
 
 	apiKeyHandler := deliveryhttp.NewAPIKeyHandler(userRepo, keyRepo, rateLimitUC)
+	authHandler := deliveryhttp.NewAuthHandler(userRepo, keyRepo)
 
 	mux := stdhttp.NewServeMux()
 	apiPrefix := "/api/v1"
 
 	rateLimitedCarHandler := deliveryhttp.NewRateLimitMiddleware(rateLimitUC, carHandler)
 
-	// Car routes
 	mux.Handle(apiPrefix+"/cars", rateLimitedCarHandler)
 	mux.Handle(apiPrefix+"/cars/", rateLimitedCarHandler)
 
-	// API Key management routes
 	mux.HandleFunc(apiPrefix+"/users", apiKeyHandler.HandleCreateUser)
 	mux.HandleFunc(apiPrefix+"/keys", apiKeyHandler.HandleCreateAPIKey)
 	mux.HandleFunc(apiPrefix+"/rate-limit", apiKeyHandler.HandleGetRateLimitInfo)
 
-	log.Println("🚗 Car API server listening on :8080")
-	log.Println("\n=== Car API Endpoints ===")
-	log.Println("  GET  /api/v1/cars")
-	log.Println("  GET  /api/v1/cars/{id}")
-	log.Println("  GET  /api/v1/cars/search?brand=...&minPrice=...&maxPrice=...")
-	log.Println("\nUse header: X-API-Key: <your_key>")
+	mux.HandleFunc(apiPrefix+"/auth/register", authHandler.HandleRegister)
+	mux.HandleFunc(apiPrefix+"/auth/login", authHandler.HandleLogin)
 
-	if err := stdhttp.ListenAndServe(":8080", mux); err != nil {
+	log.Println("Car API server listening on :8080")
+	if err := stdhttp.ListenAndServe(":8080", deliveryhttp.CORSMiddleware(mux)); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
-}
-
-func findDatabaseDir() string {
-	candidates := []string{
-		filepath.Join("backend", "database"),
-		filepath.Join("..", "..", "database"),
-		filepath.Join("..", "database"),
-		filepath.Join("database"),
-	}
-
-	for _, c := range candidates {
-		if fi, err := os.Stat(c); err == nil && fi.IsDir() {
-			return c
-		}
-	}
-
-	return filepath.Join("backend", "database")
 }

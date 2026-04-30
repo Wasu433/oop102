@@ -7,66 +7,44 @@ import (
 	"backend/domain"
 )
 
-// SQLiteCarRepository implements domain.CarRepository using SQLite
 type SQLiteCarRepository struct {
 	db *sql.DB
 }
 
-// NewSQLiteCarRepository สร้าง car repository ใหม่
 func NewSQLiteCarRepository(db *sql.DB) *SQLiteCarRepository {
 	return &SQLiteCarRepository{db: db}
 }
 
-// FindByID ค้นหารถตาม ID
 func (r *SQLiteCarRepository) FindByID(id string) (*domain.Car, error) {
 	var car domain.Car
-	row := r.db.QueryRow(
-		"SELECT id,  brand , model, year, price, color, fuel, mileage FROM cars WHERE id = ?",
+	err := r.db.QueryRow(
+		"SELECT id, brand, model, year, price, color, fuel, mileage FROM cars WHERE id = $1",
 		id,
-	)
-
-	err := row.Scan(&car.ID, &car.Brand, &car.Model, &car.Year, &car.Price, &car.Color, &car.Fuel, &car.Mileage)
+	).Scan(&car.ID, &car.Brand, &car.Model, &car.Year, &car.Price, &car.Color, &car.Fuel, &car.Mileage)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("car not found with id: %s", id)
 		}
 		return nil, err
 	}
-
 	return &car, nil
 }
 
-// FindAll ดึงรถทั้งหมด
 func (r *SQLiteCarRepository) FindAll() ([]domain.Car, error) {
 	rows, err := r.db.Query(
-		"SELECT id,  brand , model, year, price, color, fuel, mileage FROM cars ORDER BY id",
+		"SELECT id, brand, model, year, price, color, fuel, mileage FROM cars ORDER BY id",
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var result []domain.Car
-	for rows.Next() {
-		var car domain.Car
-		err := rows.Scan(&car.ID, &car.Brand, &car.Model, &car.Year, &car.Price, &car.Color, &car.Fuel, &car.Mileage)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, car)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return scanCars(rows)
 }
 
-// FindByBrand ค้นหารถตามยี่ห้อ
 func (r *SQLiteCarRepository) FindByBrand(brand string) ([]domain.Car, error) {
 	rows, err := r.db.Query(
-		"SELECT id,  brand , model, year, price, color, fuel, mileage FROM cars WHERE  brand  = ? ORDER BY id",
+		"SELECT id, brand, model, year, price, color, fuel, mileage FROM cars WHERE brand = $1 ORDER BY id",
 		brand,
 	)
 	if err != nil {
@@ -74,43 +52,28 @@ func (r *SQLiteCarRepository) FindByBrand(brand string) ([]domain.Car, error) {
 	}
 	defer rows.Close()
 
-	var result []domain.Car
-	for rows.Next() {
-		var car domain.Car
-		err := rows.Scan(&car.ID, &car.Brand, &car.Model, &car.Year, &car.Price, &car.Color, &car.Fuel, &car.Mileage)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, car)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return scanCars(rows)
 }
 
-// FindByYearBrandModel ค้นหารถตามปี ยี่ห้อ และรุ่น
 func (r *SQLiteCarRepository) FindByYearBrandModel(year int, brand, model string) ([]domain.Car, error) {
-	query := "SELECT id, brand , model, year, price, color, fuel, mileage FROM cars WHERE 1=1"
+	query := "SELECT id, brand, model, year, price, color, fuel, mileage FROM cars WHERE 1=1"
 	var args []interface{}
+	n := 1
 
 	if year > 0 {
-		query += " AND year = ?"
+		query += fmt.Sprintf(" AND year = $%d", n)
 		args = append(args, year)
+		n++
 	}
-
 	if brand != "" {
-		query += " AND  brand = ?"
+		query += fmt.Sprintf(" AND brand = $%d", n)
 		args = append(args, brand)
+		n++
 	}
-
 	if model != "" {
-		query += " AND model = ?"
+		query += fmt.Sprintf(" AND model = $%d", n)
 		args = append(args, model)
 	}
-
 	query += " ORDER BY id"
 
 	rows, err := r.db.Query(query, args...)
@@ -119,48 +82,30 @@ func (r *SQLiteCarRepository) FindByYearBrandModel(year int, brand, model string
 	}
 	defer rows.Close()
 
-	var result []domain.Car
-	for rows.Next() {
-		var car domain.Car
-		err := rows.Scan(&car.ID, &car.Brand, &car.Model, &car.Year, &car.Price, &car.Color, &car.Fuel, &car.Mileage)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, car)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return scanCars(rows)
 }
 
-// FindByPriceRange ค้นหารถในช่วงราคา
 func (r *SQLiteCarRepository) FindByPriceRange(minPrice, maxPrice float64) ([]domain.Car, error) {
 	rows, err := r.db.Query(
-		"SELECT id,  brand , model, year, price, color, fuel, mileage FROM cars WHERE price >= ? AND price <= ? ORDER BY price",
-		minPrice,
-		maxPrice,
+		"SELECT id, brand, model, year, price, color, fuel, mileage FROM cars WHERE price >= $1 AND price <= $2 ORDER BY price",
+		minPrice, maxPrice,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
+	return scanCars(rows)
+}
+
+func scanCars(rows *sql.Rows) ([]domain.Car, error) {
 	var result []domain.Car
 	for rows.Next() {
 		var car domain.Car
-		err := rows.Scan(&car.ID, &car.Brand, &car.Model, &car.Year, &car.Price, &car.Color, &car.Fuel, &car.Mileage)
-		if err != nil {
+		if err := rows.Scan(&car.ID, &car.Brand, &car.Model, &car.Year, &car.Price, &car.Color, &car.Fuel, &car.Mileage); err != nil {
 			return nil, err
 		}
 		result = append(result, car)
 	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return result, rows.Err()
 }

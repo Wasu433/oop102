@@ -33,10 +33,10 @@ func getLimitByTier(tier string) (string, int) {
 	switch tier {
 	case domain.TierFree:
 		return tier, domain.FreeTierLimit
+	case domain.TierStandard:
+		return tier, domain.StandardTierLimit
 	case domain.TierPro:
 		return tier, domain.ProTierLimit
-	case domain.TierEnterprise:
-		return tier, domain.EnterpriseTierLimit
 	default:
 		return domain.TierFree, domain.FreeTierLimit
 	}

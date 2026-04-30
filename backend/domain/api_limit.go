@@ -4,7 +4,8 @@ package domain
 type User struct {
 	ID        string
 	Email     string
-	Tier      string // "free", "pro" หรือ "enterprise"
+	Username  string
+	Tier      string
 	CreatedAt string
 	UpdatedAt string
 }
@@ -39,23 +40,27 @@ type RateLimit struct {
 
 // Tier constants
 const (
-	TierFree       = "free"
-	TierPro        = "pro"
-	TierEnterprise = "enterprise"
+	TierFree     = "free"
+	TierStandard = "standard"
+	TierPro      = "pro"
 )
 
 // Rate limit values
 const (
 	FreeTierLimit       = 100      // 100 requests/day
-	ProTierLimit        = 10000    // 10,000 requests/day
-	EnterpriseTierLimit = 100000   // 100,000 requests/day
+	StandardTierLimit   = 10000    // 50,000 requests/day
+	ProTierLimit        = 1000000    // 10,000 requests/day
+	
 )
 
 // UserRepository = interface สำหรับ user storage
 type UserRepository interface {
 	CreateUser(user *User) error
+	CreateUserWithPassword(user *User, hashedPassword string) error
 	FindByID(id string) (*User, error)
 	FindByEmail(email string) (*User, error)
+	FindByEmailWithPassword(email string) (*User, string, error)
+	FindByUsernameWithPassword(username string) (*User, string, error)
 }
 
 // APIKeyRepository = interface สำหรับ API key storage

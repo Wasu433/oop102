@@ -4,73 +4,51 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"path/filepath"
-	"sort"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
-// OpenAndMigrate opens sqlite at path and runs all SQL files in migrationsDir (sorted by name)
 func OpenAndMigrate(dbPath string, migrationsDir string) (*sql.DB, error) {
-	// ensure parent dir exists
-	if dir := filepath.Dir(dbPath); dir != "." {
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			return nil, fmt.Errorf("mkdir %s: %w", dir, err)
+	// โหลด .env จาก backend/database/.env
+	for _, path := range []string{
+		"backend/database/.env",
+		"../../database/.env",
+		"../database/.env",
+		"database/.env",
+	} {
+		if _, err := os.Stat(path); err == nil {
+			godotenv.Load(path)
+			break
 		}
 	}
 
-	db, err := sql.Open("sqlite3", dbPath)
+	host := getenv("DB_HOST", "localhost")
+	port := getenv("DB_PORT", "5432")
+	user := getenv("DB_USER", "car_user")
+	password := getenv("DB_PASSWORD", "123456")
+	dbname := getenv("DB_NAME", "car_db")
+
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname,
+	)
+
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("open postgres: %w", err)
 	}
 
-	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	// Read migration files
-	entries, err := os.ReadDir(migrationsDir)
-	if err != nil {
-		// if migrations dir missing, just return db
-		return db, nil
-	}
-
-	var files []string
-	for _, e := range entries {
-		if e.IsDir() {
-			continue
-		}
-		files = append(files, filepath.Join(migrationsDir, e.Name()))
-	}
-	sort.Strings(files)
-
-	for _, f := range files {
-		base := filepath.Base(f)
-
-		// ✅ กัน seed ซ้ำ
-		if base == "002_seed_car.sql" {
-			var count int
-			err := db.QueryRow("SELECT COUNT(*) FROM cars").Scan(&count)
-			if err == nil && count > 0 {
-				continue // ข้ามถ้ามีข้อมูลแล้ว
-			}
-		}
-
-		if err := execSQLFile(db, f); err != nil {
-			db.Close()
-			return nil, fmt.Errorf("exec migration %s: %w", f, err)
-		}
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("connect postgres: %w", err)
 	}
 
 	return db, nil
 }
 
-func execSQLFile(db *sql.DB, path string) error {
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return err
+func getenv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
 	}
-	_, err = db.Exec(string(b))
-	return err
+	return fallback
 }

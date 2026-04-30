@@ -84,7 +84,7 @@ func (h *APIKeyHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request)
 		tier = domain.TierFree
 	}
 	switch tier {
-	case domain.TierFree, domain.TierPro, domain.TierEnterprise:
+	case domain.TierFree, domain.TierStandard, domain.TierPro:
 	default:
 		http.Error(w, "invalid tier", http.StatusBadRequest)
 		return

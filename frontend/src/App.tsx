@@ -6,6 +6,8 @@ import HomePage from './pages/HomePage'
 import PricingPage from './pages/PricingPage'
 import ApiPage from './pages/ApiPage'
 import ContactPage from './pages/ContactPage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 
 export default function App() {
   return (
@@ -17,8 +19,10 @@ export default function App() {
             <Route path="/"        element={<HomePage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/api"     element={<ApiPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="*"        element={<Navigate to="/" replace />} />
+            <Route path="/contact"  element={<ContactPage />} />
+            <Route path="/login"    element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="*"         element={<Navigate to="/" replace />} />
           </Routes>
         </main>
         <Footer />
