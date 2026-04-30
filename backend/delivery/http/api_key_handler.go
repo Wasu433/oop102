@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -35,7 +36,7 @@ func NewAPIKeyHandler(
 
 type CreateUserRequest struct {
 	Email string `json:"email"`
-	Tier  string `json:"tier"` // "free", "pro" หรือ "enterprise"
+	Tier  string `json:"tier"` 
 }
 
 type CreateAPIKeyRequest struct {
@@ -180,6 +181,10 @@ func (h *APIKeyHandler) HandleDeleteAPIKey(w http.ResponseWriter, r *http.Reques
 
 	// ดึง key value จาก path: /api/v1/keys/{key}
 	keyValue := strings.TrimPrefix(r.URL.Path, "/api/v1/keys/")
+	// frontend encodes the key in the URL (encodeURIComponent). Decode it here.
+	if decoded, err := url.PathUnescape(keyValue); err == nil {
+		keyValue = decoded
+	}
 	if keyValue == "" {
 		jsonError(w, "key required in path", http.StatusBadRequest)
 		return

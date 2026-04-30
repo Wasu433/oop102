@@ -39,13 +39,13 @@ VALUES
     'Free Test Key'
 ),
 (
-    'sk_test_pro_123456',
+    'sk_test_standard_123456',
     'user002',
-    'Pro Test Key'
+    'Standard Test Key'
 ),
 (
-    'sk_test_enterprise_123456',
+    'sk_test_pro_123456',
     'user003',
-    'Enterprise Test Key'
+    'Pro Test Key'
 )
 ON CONFLICT (key) DO NOTHING;

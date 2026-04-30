@@ -35,7 +35,7 @@ const features = [
       </svg>
     ),
     title: '99.9% Uptime SLA',
-    desc: 'Enterprise-grade infrastructure with global CDN and redundant failover.',
+    desc: 'pro-grade infrastructure with global CDN and redundant failover.',
   },
   {
     icon: (
@@ -53,7 +53,7 @@ const features = [
       </svg>
     ),
     title: '24/7 Support',
-    desc: 'Dedicated technical support for Pro and Enterprise customers.',
+    desc: 'Dedicated technical support for standard and pro customers.',
   },
 ]
 
