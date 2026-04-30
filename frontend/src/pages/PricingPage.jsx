@@ -9,6 +9,7 @@ const plans = [
     note: 'เหมาะสำหรับโปรเจกต์ส่วนตัวและต้นแบบ',
     cta: 'เริ่มต้นฟรี',
     ctaStyle: 'btn-secondary',
+    ctaTo: '/register',
     features: [
       '100 API calls / เดือน',
       '1 API Key',
@@ -23,8 +24,10 @@ const plans = [
     monthly: 299,
     annual: 2870,
     note: 'สำหรับ startup และแอปที่ใช้งานจริง',
-    cta: 'เริ่มต้นใช้งาน',
+    cta: 'ทดลองใช้ฟรี 7 วัน',
     ctaStyle: 'btn-primary',
+    ctaTo: '/register?plan=standard&trial=7',
+    trialDays: 7,
     popular: true,
     features: [
       '10,000 API calls / เดือน',
@@ -44,6 +47,7 @@ const plans = [
     note: 'สำหรับองค์กรที่ต้องการปริมาณสูง',
     cta: 'อัปเกรดเป็น Pro',
     ctaStyle: 'btn-secondary',
+    ctaTo: '/contact',
     features: [
       '1,000,000 API calls / เดือน',
       '10 API Keys',
@@ -162,11 +166,16 @@ export default function PricingPage() {
                 </div>
 
                 <Link
-                  to="/contact"
-                  className={`block text-center w-full mb-7 ${plan.ctaStyle}`}
+                  to={plan.ctaTo}
+                  className={`block text-center w-full ${plan.trialDays ? 'mb-2' : 'mb-7'} ${plan.ctaStyle}`}
                 >
                   {plan.cta}
                 </Link>
+                {plan.trialDays && (
+                  <p className="text-center text-xs text-gray-400 mb-5">
+                    ทดลองฟรี {plan.trialDays} วัน — ไม่ต้องใส่บัตรเครดิต
+                  </p>
+                )}
 
                 <ul className="space-y-3">
                   {plan.features.map((f) => (

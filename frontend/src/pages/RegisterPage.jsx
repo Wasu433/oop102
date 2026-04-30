@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { register, saveSession } from '../api/authApi'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isTrial = searchParams.get('plan') === 'standard' && searchParams.get('trial') === '7'
   const [form, setForm] = useState({ name: '', username: '', email: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -31,8 +33,8 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       const { data } = await register(form.name, form.username, form.email, form.password)
-      saveSession({ ...data, name: form.name })
-      navigate('/')
+      saveSession({ ...data, name: form.name, plan: isTrial ? 'standard_trial' : 'free', trialEnds: isTrial ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : null })
+      navigate(isTrial ? '/?trial=started' : '/')
     } catch (err) {
       const msg = err.response?.data?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่'
       setError(msg)
@@ -53,8 +55,23 @@ export default function RegisterPage() {
             <span className="w-1.5 h-1.5 rounded-full bg-highlight border border-accent/40 ml-1 mt-0.5" />
           </Link>
           <h1 className="text-2xl font-medium text-navy mb-1">สมัครสมาชิก</h1>
-          <p className="text-sm text-gray-500">สร้างบัญชีและรับ API Key ฟรีทันที</p>
+          <p className="text-sm text-gray-500">
+            {isTrial ? 'สร้างบัญชีเพื่อเริ่มทดลองใช้ Standard' : 'สร้างบัญชีและรับ API Key ฟรีทันที'}
+          </p>
         </div>
+
+        {/* Trial banner */}
+        {isTrial && (
+          <div className="bg-highlight border border-secondary/30 rounded-xl px-4 py-3 mb-5 flex items-start gap-3">
+            <svg className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-navy">ทดลองใช้ Standard ฟรี 7 วัน</p>
+              <p className="text-xs text-gray-500 mt-0.5">ไม่ต้องใส่บัตรเครดิต • ยกเลิกได้ทุกเมื่อ</p>
+            </div>
+          </div>
+        )}
 
         {/* Card */}
         <div className="card p-8">

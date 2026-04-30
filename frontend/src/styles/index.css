@@ -1,5 +1,13 @@
 @import "tailwindcss";
-@config "../../tailwind.config.js";
+
+@theme {
+  --color-base: #f8fafc;
+  --color-navy: #0f172a;
+  --color-accent: #3b82f6;
+  --color-secondary: #1d4ed8;
+  --color-rim: #e5e7eb;
+  --color-highlight: #eff6ff;
+}
 
 :root {
   --base: #f8fafc;

@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 
 const Icon = ({ d, ...props }) => (
   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" {...props}>
@@ -72,8 +73,37 @@ const pricingTeaser = [
 ]
 
 export default function HomePage() {
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const [showTrialBanner, setShowTrialBanner] = useState(searchParams.get('trial') === 'started')
+
+  const dismissBanner = () => {
+    setShowTrialBanner(false)
+    navigate('/', { replace: true })
+  }
+
   return (
     <div className="bg-base">
+
+      {/* ── Trial welcome banner ── */}
+      {showTrialBanner && (
+        <div className="bg-navy text-white px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5 text-sm">
+            <svg className="w-4 h-4 text-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>
+              <span className="font-medium">เริ่มทดลองใช้ Standard แล้ว!</span>
+              {' '}คุณสามารถใช้งานได้เต็มรูปแบบฟรี 7 วัน
+            </span>
+          </div>
+          <button onClick={dismissBanner} className="text-white/60 hover:text-white transition-colors flex-shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* ── Hero ── */}
       <section className="py-24 md:py-32">
