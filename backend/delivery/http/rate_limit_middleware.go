@@ -24,12 +24,19 @@ func NewRateLimitMiddleware(
 }
 
 func (m *RateLimitMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// ดึง API key จาก header
+	// ดึง API key จาก header หรือ query param ?api_key=
 	apiKey := r.Header.Get("X-API-Key")
-
-	// ถ้าไม่มี API key ให้ผ่าน (สำหรับ public endpoints)
 	if apiKey == "" {
-		m.next.ServeHTTP(w, r)
+		apiKey = r.URL.Query().Get("api_key")
+	}
+
+	// ถ้าไม่มี API key ปฏิเสธการเข้าถึง
+	if apiKey == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "API key required. Please provide a valid api_key query parameter or X-API-Key header.",
+		})
 		return
 	}
 
@@ -37,9 +44,14 @@ func (m *RateLimitMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	allowed, err := m.rateLimitUC.CheckRateLimit(apiKey)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusTooManyRequests)
+		errMsg := err.Error()
+		if errMsg == "invalid api key" || errMsg == "api key is inactive" || errMsg == "user not found" {
+			w.WriteHeader(http.StatusUnauthorized)
+		} else {
+			w.WriteHeader(http.StatusTooManyRequests)
+		}
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": err.Error(),
+			"error": errMsg,
 		})
 		return
 	}
