@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       const { data } = await login(form.login, form.password)
       saveSession(data)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err) {
       const msg = err.response?.data?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่'
       setError(msg)

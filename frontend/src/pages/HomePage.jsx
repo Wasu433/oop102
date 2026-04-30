@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import carImg from '../images/car.png'
+import { loadSession } from '../api/authApi'
 
 const Icon = ({ d, ...props }) => (
   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" {...props}>
@@ -77,6 +78,7 @@ export default function HomePage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [showTrialBanner, setShowTrialBanner] = useState(searchParams.get('trial') === 'started')
+  const user = loadSession()
 
   const dismissBanner = () => {
     setShowTrialBanner(false)
@@ -151,8 +153,8 @@ opacity-90" />
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link to="/pricing" className="btn-primary text-base py-3 px-7">
-                เริ่มต้นฟรี
+              <Link to={user ? '/dashboard' : '/pricing'} className="btn-primary text-base py-3 px-7">
+                {user ? 'ไปที่ API Key ของฉัน' : 'เริ่มต้นฟรี'}
               </Link>
               <Link to="/api" className="btn-secondary text-blue-400 hover:text-white py-3 px-7">
                 ดูเอกสาร API
@@ -304,8 +306,8 @@ opacity-90" />
               ฟรีสูงสุด 500 requests ต่อเดือน ไม่ต้องใส่ข้อมูลบัตรเครดิต
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link to="/pricing" className="bg-white text-navy px-7 py-3 rounded-lg text-sm font-medium hover:bg-highlight transition-colors">
-                รับ API Key ฟรี
+              <Link to={user ? '/dashboard' : '/register'} className="bg-white text-navy px-7 py-3 rounded-lg text-sm font-medium hover:bg-highlight transition-colors">
+                {user ? 'ไปที่ Dashboard' : 'รับ API Key ฟรี'}
               </Link>
               <Link to="/api" className="bg-white/10 text-white border border-white/20 px-7 py-3 rounded-lg text-sm font-medium hover:bg-white/20 transition-colors">
                 อ่านเอกสาร API

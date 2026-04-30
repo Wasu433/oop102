@@ -39,7 +39,13 @@ func main() {
 	mux.Handle(apiPrefix+"/cars/", rateLimitedCarHandler)
 
 	mux.HandleFunc(apiPrefix+"/users", apiKeyHandler.HandleCreateUser)
-	mux.HandleFunc(apiPrefix+"/keys", apiKeyHandler.HandleCreateAPIKey)
+	mux.HandleFunc(apiPrefix+"/keys", func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
+		if r.Method == stdhttp.MethodGet {
+			apiKeyHandler.HandleGetUserKeys(w, r)
+		} else {
+			apiKeyHandler.HandleCreateAPIKey(w, r)
+		}
+	})
 	mux.HandleFunc(apiPrefix+"/rate-limit", apiKeyHandler.HandleGetRateLimitInfo)
 
 	mux.HandleFunc(apiPrefix+"/auth/register", authHandler.HandleRegister)

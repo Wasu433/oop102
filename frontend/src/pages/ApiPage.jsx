@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { loadSession } from '../api/authApi'
 
 const endpoints = [
   {
@@ -124,6 +125,7 @@ const errors = [
 export default function ApiPage() {
   const [active, setActive] = useState(endpoints[0].path)
   const [lang, setLang] = useState('curl')
+  const user = loadSession()
 
   const selected = endpoints.find((e) => e.path === active)
 
@@ -178,8 +180,8 @@ export default function ApiPage() {
             </nav>
             <div className="mt-4 pt-4 border-t border-rim">
               <p className="eyebrow mb-3 px-2">เริ่มต้นใช้งาน</p>
-              <Link to="/pricing" className="block px-3 py-2 text-sm text-accent hover:text-secondary transition-colors">
-                รับ API Key →
+              <Link to={user ? '/dashboard' : '/pricing'} className="block px-3 py-2 text-sm text-accent hover:text-secondary transition-colors">
+                {user ? 'จัดการ API Key →' : 'รับ API Key →'}
               </Link>
             </div>
           </div>

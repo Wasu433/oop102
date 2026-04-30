@@ -1,27 +1,43 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { loadSession, clearSession } from '../api/authApi'
 
-const navLinks = [
-  { to: '/', label: 'หน้าแรก' },
-  { to: '/pricing', label: 'ราคา' },
-  { to: '/api', label: 'เอกสาร API' },
-  { to: '/contact', label: 'ติดต่อ' },
-]
+const TIER_LABEL = { free: 'Starter', standard: 'Standard', pro: 'Pro' }
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const user = loadSession()
+  const profileRef = useRef(null)
+
+  // ปิด dropdown เมื่อคลิกนอก
+  useEffect(() => {
+    const handler = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   const handleLogout = () => {
     clearSession()
     setOpen(false)
+    setProfileOpen(false)
     navigate('/')
-    // force re-render
     window.location.reload()
   }
+
+  const navLinks = [
+    { to: '/', label: 'หน้าแรก' },
+    { to: '/cars', label: 'รถยนต์' },
+    { to: '/pricing', label: 'ราคา' },
+    { to: '/api', label: 'เอกสาร API' },
+    { to: '/contact', label: 'ติดต่อ' },
+  ]
 
   return (
     <header className="bg-white border-b border-rim sticky top-0 z-50">
@@ -51,19 +67,84 @@ export default function Navbar() {
           ))}
         </nav>
 
-        {/* ปุ่ม CTA หน้าจอใหญ่ */}
+        {/* ส่วนขวา */}
         <div className="hidden md:flex items-center gap-4">
           {user ? (
             <>
-              <span className="text-sm text-gray-600">
-                สวัสดี, <span className="font-medium text-navy">{user.name || user.email}</span>
-              </span>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-gray-500 hover:text-navy transition-colors"
+              {/* Dashboard link */}
+              <Link
+                to="/dashboard"
+                className={`text-sm transition-colors ${pathname === '/dashboard' ? 'text-navy font-medium' : 'text-gray-500 hover:text-navy'}`}
               >
-                ออกจากระบบ
-              </button>
+                Dashboard
+              </Link>
+
+              {/* Profile dropdown */}
+              <div className="relative" ref={profileRef}>
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2 group"
+                >
+                  <div className="w-8 h-8 rounded-full bg-highlight border border-accent/30 flex items-center justify-center">
+                    <span className="text-sm font-semibold text-accent">
+                      {(user.username || user.email || '?')[0].toUpperCase()}
+                    </span>
+                  </div>
+                  <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {profileOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 card py-1 shadow-lg">
+                    <div className="px-4 py-2.5 border-b border-rim">
+                      <p className="text-sm font-medium text-navy truncate">{user.username || user.email}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{TIER_LABEL[user.tier] || 'Starter'}</p>
+                    </div>
+                    <Link
+                      to="/profile"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-navy hover:bg-base transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      โปรไฟล์
+                    </Link>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-navy hover:bg-base transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/pricing"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-navy hover:bg-base transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                      อัปเกรดแผน
+                    </Link>
+                    <div className="border-t border-rim mt-1">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        ออกจากระบบ
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <>
@@ -113,32 +194,28 @@ export default function Navbar() {
           <div className="pt-3 border-t border-rim mt-3 space-y-2">
             {user ? (
               <>
-                <p className="text-sm text-gray-500 py-1">
-                  สวัสดี, <span className="font-medium text-navy">{user.name || user.email}</span>
-                </p>
-                <button
-                  onClick={handleLogout}
-                  className="btn-secondary block text-center w-full"
-                >
+                <div className="flex items-center gap-2 py-1">
+                  <div className="w-7 h-7 rounded-full bg-highlight border border-accent/30 flex items-center justify-center">
+                    <span className="text-xs font-semibold text-accent">
+                      {(user.username || user.email || '?')[0].toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-navy">{user.username || user.email}</p>
+                    <p className="text-xs text-gray-400">{TIER_LABEL[user.tier] || 'Starter'}</p>
+                  </div>
+                </div>
+                <Link to="/dashboard" onClick={() => setOpen(false)} className="btn-secondary block text-center w-full">Dashboard</Link>
+                <Link to="/profile" onClick={() => setOpen(false)} className="btn-secondary block text-center w-full">โปรไฟล์</Link>
+                <Link to="/pricing" onClick={() => setOpen(false)} className="btn-secondary block text-center w-full">อัปเกรดแผน</Link>
+                <button onClick={handleLogout} className="w-full text-left px-5 py-2.5 text-sm text-red-500 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">
                   ออกจากระบบ
                 </button>
               </>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  onClick={() => setOpen(false)}
-                  className="btn-secondary block text-center w-full"
-                >
-                  เข้าสู่ระบบ
-                </Link>
-                <Link
-                  to="/register"
-                  onClick={() => setOpen(false)}
-                  className="btn-primary block text-center w-full"
-                >
-                  สมัครสมาชิก
-                </Link>
+                <Link to="/login" onClick={() => setOpen(false)} className="btn-secondary block text-center w-full">เข้าสู่ระบบ</Link>
+                <Link to="/register" onClick={() => setOpen(false)} className="btn-primary block text-center w-full">สมัครสมาชิก</Link>
               </>
             )}
           </div>

@@ -15,11 +15,12 @@ func NewSQLiteCarRepository(db *sql.DB) *SQLiteCarRepository {
 	return &SQLiteCarRepository{db: db}
 }
 
+const carSelect = "SELECT id::text, brand, model, year, price, COALESCE(color,''), COALESCE(fuel,''), COALESCE(mileage,0)"
+
 func (r *SQLiteCarRepository) FindByID(id string) (*domain.Car, error) {
 	var car domain.Car
 	err := r.db.QueryRow(
-		"SELECT id, brand, model, year, price, color, fuel, mileage FROM cars WHERE id = $1",
-		id,
+		carSelect+" FROM cars WHERE id = $1", id,
 	).Scan(&car.ID, &car.Brand, &car.Model, &car.Year, &car.Price, &car.Color, &car.Fuel, &car.Mileage)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -31,32 +32,25 @@ func (r *SQLiteCarRepository) FindByID(id string) (*domain.Car, error) {
 }
 
 func (r *SQLiteCarRepository) FindAll() ([]domain.Car, error) {
-	rows, err := r.db.Query(
-		"SELECT id, brand, model, year, price, color, fuel, mileage FROM cars ORDER BY id",
-	)
+	rows, err := r.db.Query(carSelect + " FROM cars ORDER BY id")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
 	return scanCars(rows)
 }
 
 func (r *SQLiteCarRepository) FindByBrand(brand string) ([]domain.Car, error) {
-	rows, err := r.db.Query(
-		"SELECT id, brand, model, year, price, color, fuel, mileage FROM cars WHERE brand = $1 ORDER BY id",
-		brand,
-	)
+	rows, err := r.db.Query(carSelect+" FROM cars WHERE brand = $1 ORDER BY id", brand)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
 	return scanCars(rows)
 }
 
 func (r *SQLiteCarRepository) FindByYearBrandModel(year int, brand, model string) ([]domain.Car, error) {
-	query := "SELECT id, brand, model, year, price, color, fuel, mileage FROM cars WHERE 1=1"
+	query := carSelect + " FROM cars WHERE 1=1"
 	var args []interface{}
 	n := 1
 
@@ -81,20 +75,18 @@ func (r *SQLiteCarRepository) FindByYearBrandModel(year int, brand, model string
 		return nil, err
 	}
 	defer rows.Close()
-
 	return scanCars(rows)
 }
 
 func (r *SQLiteCarRepository) FindByPriceRange(minPrice, maxPrice float64) ([]domain.Car, error) {
 	rows, err := r.db.Query(
-		"SELECT id, brand, model, year, price, color, fuel, mileage FROM cars WHERE price >= $1 AND price <= $2 ORDER BY price",
+		carSelect+" FROM cars WHERE price >= $1 AND price <= $2 ORDER BY price",
 		minPrice, maxPrice,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
 	return scanCars(rows)
 }
 

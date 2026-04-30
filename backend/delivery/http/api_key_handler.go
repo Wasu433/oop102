@@ -147,6 +147,30 @@ func (h *APIKeyHandler) HandleCreateAPIKey(w http.ResponseWriter, r *http.Reques
 	})
 }
 
+// HandleGetUserKeys = GET /api/v1/keys?user_id=xxx
+func (h *APIKeyHandler) HandleGetUserKeys(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		http.Error(w, "user_id required", http.StatusBadRequest)
+		return
+	}
+	keys, err := h.keyRepo.FindByUserID(userID)
+	if err != nil {
+		http.Error(w, "Failed to fetch keys", http.StatusInternalServerError)
+		return
+	}
+	resp := make([]APIKeyResponse, len(keys))
+	for i, k := range keys {
+		resp[i] = APIKeyResponse{Key: k.Key, UserID: k.UserID, Name: k.Name, CreatedAt: k.CreatedAt}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
 // HandleGetRateLimitInfo = GET /api/v1/rate-limit
 func (h *APIKeyHandler) HandleGetRateLimitInfo(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

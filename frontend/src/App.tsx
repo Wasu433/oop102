@@ -8,6 +8,16 @@ import ApiPage from './pages/ApiPage'
 import ContactPage from './pages/ContactPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import DashboardPage from './pages/DashboardPage'
+import ProfilePage from './pages/ProfilePage'
+import CarsPage from './pages/CarsPage'
+import { loadSession } from './api/authApi'
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const user = loadSession()
+  if (!user) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
 
 export default function App() {
   return (
@@ -16,13 +26,16 @@ export default function App() {
         <Navbar />
         <main className="flex-1">
           <Routes>
-            <Route path="/"        element={<HomePage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/api"     element={<ApiPage />} />
-            <Route path="/contact"  element={<ContactPage />} />
-            <Route path="/login"    element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="*"         element={<Navigate to="/" replace />} />
+            <Route path="/"          element={<HomePage />} />
+            <Route path="/pricing"   element={<PricingPage />} />
+            <Route path="/api"       element={<ApiPage />} />
+            <Route path="/contact"   element={<ContactPage />} />
+            <Route path="/login"     element={<LoginPage />} />
+            <Route path="/register"  element={<RegisterPage />} />
+            <Route path="/cars"      element={<CarsPage />} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/profile"   element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="*"          element={<Navigate to="/" replace />} />
           </Routes>
         </main>
         <Footer />

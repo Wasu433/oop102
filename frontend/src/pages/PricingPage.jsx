@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { loadSession } from '../api/authApi'
 
 const plans = [
   {
@@ -93,6 +94,16 @@ const Check = () => (
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false)
   const [openFaq, setOpenFaq] = useState(null)
+  const user = loadSession()
+
+  const getPlanCTA = (plan) => {
+    if (!user) return { label: plan.cta, to: plan.ctaTo }
+    const userTier = user.tier || 'free'
+    const planTier = plan.name.toLowerCase()
+    if (userTier === planTier) return { label: 'ดู API Key ของฉัน', to: '/dashboard', disabled: false }
+    if (planTier === 'free') return { label: 'ดาวน์เกรด', to: '/contact' }
+    return { label: planTier === 'pro' ? 'ติดต่ออัปเกรด Pro' : 'อัปเกรด Standard', to: '/contact' }
+  }
 
   return (
     <div className="bg-base min-h-screen">
@@ -165,17 +176,28 @@ export default function PricingPage() {
                   )}
                 </div>
 
-                <Link
-                  to={plan.ctaTo}
-                  className={`block text-center w-full ${plan.trialDays ? 'mb-2' : 'mb-7'} ${plan.ctaStyle}`}
-                >
-                  {plan.cta}
-                </Link>
-                {plan.trialDays && (
-                  <p className="text-center text-xs text-gray-400 mb-5">
-                    ทดลองฟรี {plan.trialDays} วัน — ไม่ต้องใส่บัตรเครดิต
-                  </p>
-                )}
+                {(() => {
+                  const cta = getPlanCTA(plan)
+                  return cta.disabled ? (
+                    <span className={`block text-center w-full mb-7 ${plan.ctaStyle} opacity-60 cursor-default`}>
+                      {cta.label}
+                    </span>
+                  ) : (
+                    <>
+                      <Link
+                        to={cta.to}
+                        className={`block text-center w-full ${plan.trialDays && !user ? 'mb-2' : 'mb-7'} ${plan.ctaStyle}`}
+                      >
+                        {cta.label}
+                      </Link>
+                      {plan.trialDays && !user && (
+                        <p className="text-center text-xs text-gray-400 mb-5">
+                          ทดลองฟรี {plan.trialDays} วัน — ไม่ต้องใส่บัตรเครดิต
+                        </p>
+                      )}
+                    </>
+                  )
+                })()}
 
                 <ul className="space-y-3">
                   {plan.features.map((f) => (
