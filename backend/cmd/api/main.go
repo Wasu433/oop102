@@ -64,6 +64,7 @@ func main() {
 func findDatabaseDir() string {
 	candidates := []string{
 		filepath.Join("backend", "database"),
+		filepath.Join("..", "..", "database"),
 		filepath.Join("..", "database"),
 		filepath.Join("database"),
 	}

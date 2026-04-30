@@ -23,23 +23,22 @@ export const CarCard: React.FC<CarCardProps> = ({ car }) => {
     navigate(`/car/${car.id}`);
   };
 
-  // สีตัวแทนรถ (ใช้ emoji หรือรูป)
-  const getCarIcon = (brand: string) => {
-    const icons: { [key: string]: string } = {
-      Toyota: '🚗',
-      Honda: '🚙',
-      BMW: '🏎️',
-      Tesla: '⚡',
-      Default: '🚗',
-    };
-    return icons[brand] || icons['Default'];
-  };
+  const carImageUrl = `https://loremflickr.com/640/360/${encodeURIComponent(car.brand)}+${encodeURIComponent(car.model)}+car/all?lock=${car.id}`;
 
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
-      {/* Car Image/Icon Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-blue-100 h-40 flex items-center justify-center">
-        <div className="text-6xl">{getCarIcon(car.brand)}</div>
+      {/* Car Image Section */}
+      <div className="relative h-48 bg-gray-100 overflow-hidden">
+        <img
+          src={carImageUrl}
+          alt={`${car.brand} ${car.model}`}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            const target = e.currentTarget;
+            target.onerror = null;
+            target.src = `https://loremflickr.com/640/360/car/all?lock=${car.id}`;
+          }}
+        />
       </div>
 
       {/* Car Info Section */}

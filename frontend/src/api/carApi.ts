@@ -15,7 +15,7 @@ const getHeaders = (): HeadersInit => {
 
   // ถ้ามี API key ให้ใส่ไปใน Authorization header
   if (API_KEY) {
-    headers['Authorization'] = `Bearer ${API_KEY}`;
+    headers['X-API-Key'] = API_KEY;
   }
 
   return headers;
