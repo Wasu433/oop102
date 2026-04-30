@@ -42,13 +42,6 @@ const features = [
   },
 ]
 
-const stats = [
-  ['50K+', 'รุ่นรถยนต์'],
-  ['200+', 'ยี่ห้อ'],
-  ['ทุกวัน', 'อัปเดตข้อมูล'],
-  ['99.9%', 'อัปไทม์'],
-]
-
 const sampleCode = `GET /v1/cars?brand=Toyota&year=2024&fuel=hybrid
 X-API-Key: ••••••••••••••••
 
@@ -161,15 +154,6 @@ opacity-90" />
               </Link>
             </div>
 
-            {/* stats */}
-            <div className="mt-14 pt-8 border-t border-rim flex flex-wrap gap-x-10 gap-y-4">
-              {stats.map(([val, label]) => (
-                <div key={label}>
-                  <div className="text-xl font-medium text-navy">{val}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{label}</div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* RIGHT: IMAGE */}

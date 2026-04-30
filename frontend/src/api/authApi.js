@@ -60,3 +60,16 @@ export const loadLikes = (userId) => {
     return []
   }
 }
+
+export const saveProfile = (userId, profile) => {
+  localStorage.setItem(`carapi_profile_${userId}`, JSON.stringify(profile))
+  window.dispatchEvent(new Event('carapi:profileUpdated'))
+}
+
+export const loadProfile = (userId) => {
+  try {
+    return JSON.parse(localStorage.getItem(`carapi_profile_${userId}`)) || {}
+  } catch {
+    return {}
+  }
+}

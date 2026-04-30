@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { loadSession, clearSession } from '../api/authApi'
+import { loadSession, clearSession, loadProfile } from '../api/authApi'
 
 const TIER_LABEL = { free: 'Starter', standard: 'Standard', pro: 'Pro' }
 
@@ -11,6 +11,8 @@ export default function Navbar() {
   const navigate = useNavigate()
   const user = loadSession()
   const profileRef = useRef(null)
+  const [profile, setProfile] = useState(() => user ? loadProfile(user.id) : {})
+  const displayName = profile.name || (user ? (user.username || user.email || '?') : '?')
 
   // ปิด dropdown เมื่อคลิกนอก
   useEffect(() => {
@@ -21,6 +23,13 @@ export default function Navbar() {
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // รีโหลด profile เมื่อมีการบันทึกจาก ProfilePage
+  useEffect(() => {
+    const handler = () => setProfile(user ? loadProfile(user.id) : {})
+    window.addEventListener('carapi:profileUpdated', handler)
+    return () => window.removeEventListener('carapi:profileUpdated', handler)
   }, [])
 
   const handleLogout = () => {
@@ -85,10 +94,13 @@ export default function Navbar() {
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="flex items-center gap-2 group"
                 >
-                  <div className="w-8 h-8 rounded-full bg-highlight border border-accent/30 flex items-center justify-center">
-                    <span className="text-sm font-semibold text-accent">
-                      {(user.username || user.email || '?')[0].toUpperCase()}
-                    </span>
+                  <div className="w-8 h-8 rounded-full bg-highlight border border-accent/30 overflow-hidden flex items-center justify-center">
+                    {profile.avatar
+                      ? <img src={profile.avatar} alt="avatar" className="w-full h-full object-cover" />
+                      : <span className="text-sm font-semibold text-accent">
+                          {displayName[0].toUpperCase()}
+                        </span>
+                    }
                   </div>
                   <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -98,7 +110,7 @@ export default function Navbar() {
                 {profileOpen && (
                   <div className="absolute right-0 top-full mt-2 w-52 card py-1 shadow-lg">
                     <div className="px-4 py-2.5 border-b border-rim">
-                      <p className="text-sm font-medium text-navy truncate">{user.username || user.email}</p>
+                      <p className="text-sm font-medium text-navy truncate">{displayName}</p>
                       <p className="text-xs text-gray-400 mt-0.5">{TIER_LABEL[user.tier] || 'Starter'}</p>
                     </div>
                     <Link
@@ -195,13 +207,16 @@ export default function Navbar() {
             {user ? (
               <>
                 <div className="flex items-center gap-2 py-1">
-                  <div className="w-7 h-7 rounded-full bg-highlight border border-accent/30 flex items-center justify-center">
-                    <span className="text-xs font-semibold text-accent">
-                      {(user.username || user.email || '?')[0].toUpperCase()}
-                    </span>
+                  <div className="w-7 h-7 rounded-full bg-highlight border border-accent/30 overflow-hidden flex items-center justify-center">
+                    {profile.avatar
+                      ? <img src={profile.avatar} alt="avatar" className="w-full h-full object-cover" />
+                      : <span className="text-xs font-semibold text-accent">
+                          {displayName[0].toUpperCase()}
+                        </span>
+                    }
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-navy">{user.username || user.email}</p>
+                    <p className="text-sm font-medium text-navy">{displayName}</p>
                     <p className="text-xs text-gray-400">{TIER_LABEL[user.tier] || 'Starter'}</p>
                   </div>
                 </div>

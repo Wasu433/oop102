@@ -2,12 +2,75 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { loadSession, getCars, loadLikes, saveLikes, loadUserKeys } from '../api/authApi'
 
+const carImages = import.meta.glob('../images/**/*.{png,jpg}', { eager: true })
+
 const FUEL_TH   = { petrol:'น้ำมัน', diesel:'ดีเซล', electric:'ไฟฟ้า', hybrid:'ไฮบริด' }
 const FUEL_COLOR = {
   petrol:   'bg-orange-50 text-orange-600 border-orange-100',
   diesel:   'bg-gray-100   text-gray-600   border-gray-200',
   electric: 'bg-green-50  text-green-600  border-green-100',
   hybrid:   'bg-teal-50   text-teal-600   border-teal-100',
+}
+
+const BRAND_FOLDER = {
+  'isuzu':         ' Isuzu',
+  'audi':          'Audi',
+  'bmw':           'BMW 2',
+  'byd':           'benz/BYD',
+  'honda':         'Honda',
+  'mg':            'MG',
+  'mitsubishi':    'Mitsubishi',
+  'nissan':        'Nissan',
+  'tesla':         'Tesla',
+  'toyota':        'Toyota',
+  'volvo':         'Volvo',
+  'mercedes-benz': 'benz',
+  'mercedes':      'benz',
+  'ford':          'ford',
+  'mazda':         'mazda',
+}
+
+function normalizeStr(s) {
+  return s.toLowerCase()
+    .replace(/\([^)]*\)/g, '')
+    .replace(/\b\d{4}\b/g, '')
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function getCarImage(brand, model) {
+  const folder = BRAND_FOLDER[brand.toLowerCase()]
+  if (!folder) return null
+
+  const modelNorm = normalizeStr(model)
+  const modelCompact = modelNorm.replace(/\s/g, '')
+  const brandLow = brand.toLowerCase().replace(/[-_]/g, ' ')
+
+  let best = null
+  let bestScore = -1
+
+  for (const [path, mod] of Object.entries(carImages)) {
+    if (!path.includes(`images/${folder}/`)) continue
+    if (folder === 'benz' && path.includes('images/benz/BYD/')) continue
+
+    const filename = path.split('/').pop().replace(/\.(png|jpg)$/i, '')
+    let fileNorm = normalizeStr(filename)
+    if (fileNorm.startsWith(brandLow + ' ')) fileNorm = fileNorm.slice(brandLow.length + 1).trim()
+    const fileCompact = fileNorm.replace(/\s/g, '')
+
+    let score = -1
+    if (fileNorm === modelNorm)                                        score = 100
+    else if (fileCompact === modelCompact)                             score = 90
+    else if (modelCompact.length >= 2 && fileCompact.startsWith(modelCompact)) score = 70
+    else if (modelNorm.length >= 2 && fileNorm.startsWith(modelNorm)) score = 65
+    else if (modelCompact.length >= 2 && fileCompact.includes(modelCompact)) score = 50
+    else if (modelNorm.length >= 2 && fileNorm.includes(modelNorm))   score = 45
+
+    if (score > bestScore) { bestScore = score; best = mod.default }
+  }
+
+  return bestScore >= 0 ? best : null
 }
 
 const PAGE_SIZE   = 20
@@ -32,12 +95,16 @@ function HeartBtn({ filled, onClick, disabled }) {
 
 function CarCard({ car, liked, onLike, loggedIn }) {
   const fuel = (car.fuel || '').toLowerCase()
+  const imgSrc = getCarImage(car.brand, car.model)
   return (
     <div className="card overflow-hidden hover:border-accent hover:shadow-md transition-all duration-200 flex flex-col">
       <div className="bg-gradient-to-br from-base to-highlight h-28 flex items-center justify-center relative border-b border-rim">
-        <svg className="w-16 h-16 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.7} d="M19 9l-2-6H7L5 9m14 0H5m14 0l1 3H4l1-3m0 0v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
-        </svg>
+        {imgSrc
+          ? <img src={imgSrc} alt={`${car.brand} ${car.model}`} className="h-full w-full object-contain p-2" />
+          : <svg className="w-16 h-16 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.7} d="M19 9l-2-6H7L5 9m14 0H5m14 0l1 3H4l1-3m0 0v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+            </svg>
+        }
         <div className="absolute top-2 right-2">
           <HeartBtn filled={liked} onClick={() => loggedIn && onLike(car.id)} disabled={!loggedIn} />
         </div>
@@ -250,7 +317,7 @@ export default function CarsPage() {
 
               {/* เชื้อเพลิง */}
               <div>
-                <p className="text-xs text-gray-400 mb-1.5">เชื้อเพลิง</p>
+                <p className="text-xs text-gray-400 mb-1.5">ประเภท</p>
                 <div className="space-y-1.5">
                   {['', ...fuels].map(f => (
                     <label key={f} className="flex items-center gap-2 cursor-pointer">

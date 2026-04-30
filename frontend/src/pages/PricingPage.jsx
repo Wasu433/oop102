@@ -43,8 +43,8 @@ const plans = [
   },
   {
     name: 'Pro',
-    monthly: 2999,
-    annual: 28790,
+    monthly: 599,
+    annual: 5750,
     note: 'สำหรับองค์กรที่ต้องการปริมาณสูง',
     cta: 'อัปเกรดเป็น Pro',
     ctaStyle: 'btn-secondary',
@@ -168,11 +168,11 @@ export default function PricingPage() {
                   ) : (
                     <>
                       <span className="text-3xl font-medium text-navy">฿{price.toLocaleString()}</span>
-                      <span className="text-gray-400 text-sm ml-1">/ เดือน</span>
+                      <span className="text-gray-400 text-sm ml-1">/ {annual ? 'ปี' : 'เดือน'}</span>
                     </>
                   )}
                   {annual && price > 0 && (
-                    <p className="text-xs text-accent mt-1">ชำระรายปี (฿{(price * 12).toLocaleString()} / ปี)</p>
+                    <p className="text-xs text-accent mt-1">เทียบเท่า ฿{Math.round(price / 12).toLocaleString()} / เดือน</p>
                   )}
                 </div>
 
