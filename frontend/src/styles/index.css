@@ -64,7 +64,7 @@
   }
 
   .btn-secondary:hover {
-    color: var(--secondary);
+    color: var(--black);
     border-color: var(--secondary);
   }
 

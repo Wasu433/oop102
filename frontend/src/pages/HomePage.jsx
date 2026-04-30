@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+import carImg from '../images/car.png'
 
 const Icon = ({ d, ...props }) => (
   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" {...props}>
@@ -106,44 +107,78 @@ export default function HomePage() {
       )}
 
       {/* ── Hero ── */}
-      <section className="py-24 md:py-32">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <span className="badge mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-            API ราคารถยนต์ไทย
-          </span>
+      {/* ── Hero ── */}
+      <section className="py-24 md:py-32 relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
-          <h1 className="text-5xl md:text-6xl font-medium text-navy leading-[1.1] tracking-tight mb-6">
-            ราคารถที่แม่นยำ.<br />
-            <span className="text-accent">API ที่ใช้งานง่าย.</span>
-          </h1>
-
-          <p className="text-lg text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed">
-            เข้าถึงราคาตลาดแบบเรียลไทม์ของทุกยี่ห้อ ทุกรุ่น และทุกตัวถังที่จำหน่ายในประเทศไทย
-            เชื่อมต่อได้ในไม่กี่นาที ขยายได้ไม่มีขีดจำกัด
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/pricing" className="btn-primary text-base py-3 px-7">
-              เริ่มต้นฟรี
-              <svg className="inline-block ml-1.5 w-4 h-4 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
-            <Link to="/api" className="btn-secondary text-base py-3 px-7">
-              ดูเอกสาร API
-            </Link>
-          </div>
-
-          {/* สถิติ */}
-          <div className="mt-14 pt-8 border-t border-rim flex flex-wrap justify-center gap-x-10 gap-y-4">
-            {stats.map(([val, label]) => (
-              <div key={label} className="text-center">
-                <div className="text-xl font-medium text-navy">{val}</div>
-                <div className="text-xs text-gray-400 mt-0.5">{label}</div>
-              </div>
+          {/* F1 stripe */}
+          <div className="hidden lg:block absolute top-0 right-0 w-40 h-20 
+bg-[repeating-linear-gradient(45deg,#3b82f6,#3b82f6_12px,transparent_12px,transparent_24px)] 
+opacity-90" />
+          {/* F1 dots */}
+          <div className="absolute left-6 top-20 grid grid-cols-3 gap-2">
+            {[...Array(9)].map((_, i) => (
+              <span key={i} className="w-2 h-2 bg-blue-500 rounded-full"></span>
             ))}
           </div>
+          {/* bottom racing line */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3">
+            <div className="w-16 h-[2px] bg-blue-400" />
+            <div className="flex gap-1 text-blue-500">
+              <span>★</span>
+              <span>★</span>
+              <span>★</span>
+            </div>
+            <div className="w-16 h-[2px] bg-blue-400" />
+          </div>
+
+
+          {/* LEFT: TEXT */}
+          <div className="text-left">
+            <span className="badge mb-8 inline-flex">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+              API ราคารถยนต์ไทย
+            </span>
+
+            <h1 className="text-5xl md:text-6xl font-medium text-navy leading-[1.1] tracking-tight mb-6">
+              ราคารถที่แม่นยำ.<br />
+              <span className="text-accent">API ที่ใช้งานง่าย.</span>
+            </h1>
+
+            <p className="text-lg text-gray-500 max-w-xl mb-10 leading-relaxed">
+              เข้าถึงราคาตลาดแบบเรียลไทม์ของทุกยี่ห้อ ทุกรุ่น และทุกตัวถังที่จำหน่ายในประเทศไทย
+              เชื่อมต่อได้ในไม่กี่นาที ขยายได้ไม่มีขีดจำกัด
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link to="/pricing" className="btn-primary text-base py-3 px-7">
+                เริ่มต้นฟรี
+              </Link>
+              <Link to="/api" className="btn-secondary text-blue-400 hover:text-white py-3 px-7">
+                ดูเอกสาร API
+              </Link>
+            </div>
+
+            {/* stats */}
+            <div className="mt-14 pt-8 border-t border-rim flex flex-wrap gap-x-10 gap-y-4">
+              {stats.map(([val, label]) => (
+                <div key={label}>
+                  <div className="text-xl font-medium text-navy">{val}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT: IMAGE */}
+          <div className="flex justify-center lg:justify-end">
+            <img
+              src={carImg}
+              alt="Car API preview"
+              className="w-full max-w-lg rounded-xl"
+            />
+          </div>
+
         </div>
       </section>
 
@@ -237,9 +272,8 @@ export default function HomePage() {
             {pricingTeaser.map(({ name, price, note, popular }) => (
               <div
                 key={name}
-                className={`rounded-xl border p-6 ${
-                  popular ? 'bg-highlight border-secondary' : 'bg-white border-rim'
-                }`}
+                className={`rounded-xl border p-6 ${popular ? 'bg-highlight border-secondary' : 'bg-white border-rim'
+                  }`}
               >
                 {popular && (
                   <span className="inline-block bg-navy text-white text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-3">
