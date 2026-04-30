@@ -1,25 +1,30 @@
 -- =========================
 -- Insert Users
+-- password = '123456789' (bcrypt hashed)
 -- =========================
-INSERT INTO users (id, email, password, plan_id)
-VALUES 
+INSERT INTO users (id, email, username, password, plan_id)
+VALUES
 (
     'user001',
     'free@test.com',
-    '123456789',
+    'free_user',
+    '$2a$10$sabYHKd2TyPeORD3qZOpe.jbmLQWGboqcQ69GJFMq5XVGUpQ0Z4Yu',
     (SELECT id FROM plans WHERE name = 'free')
 ),
 (
     'user002',
-    'pro@test.com',
-    '123456789',
-    (SELECT id FROM plans WHERE name = 'pro')
+    'standard@test.com',
+    'standard_user',
+    '$2a$10$sabYHKd2TyPeORD3qZOpe.jbmLQWGboqcQ69GJFMq5XVGUpQ0Z4Yu',
+    (SELECT id FROM plans WHERE name = 'standard')
 ),
 (
     'user003',
-    'enterprise@test.com',
-    '123456789',
-    (SELECT id FROM plans WHERE name = 'enterprise')
+    'pro@test.com',
+    'pro_user',
+    '$2a$10$sabYHKd2TyPeORD3qZOpe.jbmLQWGboqcQ69GJFMq5XVGUpQ0Z4Yu',
+    (SELECT id FROM plans WHERE name = 'pro')
+    
 )
 ON CONFLICT (email) DO NOTHING;
 

@@ -26,6 +26,8 @@ done
 
 echo "Applying migrations..."
 for f in ./migrations/*.sql; do
+  # ข้าม rollback files
+  [[ "$(basename "$f")" == rollback_* ]] && continue
   echo "Applying $f"
   docker-compose exec -T db psql -U "$DB_USER" -d "$DB_NAME" -f "/migrations/$(basename "$f")"
 done

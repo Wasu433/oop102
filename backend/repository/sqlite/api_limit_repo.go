@@ -146,7 +146,7 @@ func (r *SQLiteAPIKeyRepository) FindByKey(key string) (*domain.APIKey, error) {
 
 func (r *SQLiteAPIKeyRepository) FindByUserID(userID string) ([]domain.APIKey, error) {
 	rows, err := r.db.Query(
-		"SELECT key, user_id, name, is_active, created_at, last_used_at FROM api_keys WHERE user_id = $1 AND is_active = 1",
+		"SELECT key, user_id, name, is_active, created_at, last_used_at FROM api_keys WHERE user_id = $1 AND is_active = TRUE",
 		userID,
 	)
 	if err != nil {

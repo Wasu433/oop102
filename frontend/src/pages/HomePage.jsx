@@ -66,9 +66,9 @@ X-API-Key: ••••••••••••••••
 }`
 
 const pricingTeaser = [
-  { name: 'Starter', price: 'ฟรี', note: '500 req / เดือน' },
-  { name: 'Standard', price: '฿299', note: '50,000 req / เดือน', popular: true },
-  { name: 'Pro', price: '฿2,999', note: 'ไม่จำกัด' },
+  { name: 'Free', price: 'ฟรี', note: '100 req / เดือน' },
+  { name: 'Standard', price: '฿299', note: '10,000 req / เดือน', popular: true },
+  { name: 'Pro', price: '฿2,999', note: '1,000,000 req / เดือน' },
 ]
 
 export default function HomePage() {
