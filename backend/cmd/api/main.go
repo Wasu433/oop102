@@ -46,6 +46,13 @@ func main() {
 			apiKeyHandler.HandleCreateAPIKey(w, r)
 		}
 	})
+	mux.HandleFunc(apiPrefix+"/keys/", func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
+		if r.Method == stdhttp.MethodDelete {
+			apiKeyHandler.HandleDeleteAPIKey(w, r)
+		} else {
+			stdhttp.Error(w, "Method not allowed", stdhttp.StatusMethodNotAllowed)
+		}
+	})
 	mux.HandleFunc(apiPrefix+"/rate-limit", apiKeyHandler.HandleGetRateLimitInfo)
 
 	mux.HandleFunc(apiPrefix+"/auth/register", authHandler.HandleRegister)

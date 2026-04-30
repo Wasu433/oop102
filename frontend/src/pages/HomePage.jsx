@@ -17,7 +17,7 @@ const features = [
   },
   {
     icon: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4',
-    title: 'รุ่นรถกว่า 50,000 รุ่น',
+    title: 'รวมแบรนด์ดังในไทย',
     desc: 'ครอบคลุมทุกยี่ห้อหลักในไทย ทั้ง Toyota, Honda, Isuzu, BMW, Mercedes และอีกมากมาย',
   },
   {
@@ -238,42 +238,7 @@ opacity-90" />
         </div>
       </section>
 
-      {/* ── ตัวอย่างแผนราคา ── */}
-      <section className="bg-white py-20">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
-            <div>
-              <span className="eyebrow mb-2 block">ราคา</span>
-              <h2 className="section-title">แผนบริการที่เรียบง่ายและโปร่งใส</h2>
-            </div>
-            <Link to="/pricing" className="btn-ghost shrink-0">
-              ดูทุกแผน
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {pricingTeaser.map(({ name, price, note, popular }) => (
-              <div
-                key={name}
-                className={`rounded-xl border p-6 ${popular ? 'bg-highlight border-secondary' : 'bg-white border-rim'
-                  }`}
-              >
-                {popular && (
-                  <span className="inline-block bg-navy text-white text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-3">
-                    ยอดนิยม
-                  </span>
-                )}
-                <p className="text-sm text-gray-500 mb-1">{name}</p>
-                <p className="text-2xl font-medium text-navy">{price}</p>
-                <p className="text-xs text-gray-400 mt-1">{note}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
 
       {/* ── CTA ── */}
       <section className="py-20">

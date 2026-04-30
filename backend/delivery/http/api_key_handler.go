@@ -171,6 +171,54 @@ func (h *APIKeyHandler) HandleGetUserKeys(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(resp)
 }
 
+// HandleDeleteAPIKey = DELETE /api/v1/keys/{key}
+func (h *APIKeyHandler) HandleDeleteAPIKey(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// ดึง key value จาก path: /api/v1/keys/{key}
+	keyValue := strings.TrimPrefix(r.URL.Path, "/api/v1/keys/")
+	if keyValue == "" {
+		jsonError(w, "key required in path", http.StatusBadRequest)
+		return
+	}
+
+	// รับ user_id จาก query param หรือ body
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		var body struct {
+			UserID string `json:"user_id"`
+		}
+		json.NewDecoder(r.Body).Decode(&body)
+		userID = body.UserID
+	}
+	if userID == "" {
+		jsonError(w, "user_id required", http.StatusBadRequest)
+		return
+	}
+
+	// ตรวจสอบว่า key นี้เป็นของ user นี้จริง
+	existing, err := h.keyRepo.FindByKey(keyValue)
+	if err != nil {
+		jsonError(w, "key not found", http.StatusNotFound)
+		return
+	}
+	if existing.UserID != userID {
+		jsonError(w, "unauthorized", http.StatusForbidden)
+		return
+	}
+
+	if err := h.keyRepo.DeleteAPIKey(keyValue); err != nil {
+		jsonError(w, "failed to delete key", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "key deleted"})
+}
+
 // HandleGetRateLimitInfo = GET /api/v1/rate-limit
 func (h *APIKeyHandler) HandleGetRateLimitInfo(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

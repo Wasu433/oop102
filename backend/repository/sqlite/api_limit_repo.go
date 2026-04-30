@@ -177,6 +177,14 @@ func (r *SQLiteAPIKeyRepository) UpdateLastUsed(key string) error {
 	return err
 }
 
+func (r *SQLiteAPIKeyRepository) DeleteAPIKey(key string) error {
+	_, err := r.db.Exec(
+		"UPDATE api_keys SET is_active = FALSE WHERE key = $1",
+		key,
+	)
+	return err
+}
+
 // ── API Usage Repository ─────────────────────────────────────
 
 type SQLiteAPIUsageRepository struct {

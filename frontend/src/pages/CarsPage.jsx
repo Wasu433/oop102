@@ -30,6 +30,8 @@ const BRAND_FOLDER = {
   'mazda':         'mazda',
 }
 
+const YEAR_OPTIONS = Array.from({ length: 27 }, (_, i) => 2026 - i) // 2026 → 2000
+
 function normalizeStr(s) {
   return s.toLowerCase()
     .replace(/\([^)]*\)/g, '')
@@ -161,6 +163,7 @@ function Pagination({ page, total, pageSize, onChange }) {
 
 export default function CarsPage() {
   const user     = loadSession()
+  const tier     = user?.tier || 'free'
   const [allCars, setAllCars]   = useState([])
   const [likes,   setLikes]     = useState([])
   const [loading, setLoading]   = useState(true)
@@ -169,10 +172,11 @@ export default function CarsPage() {
 
   // filters
   const [search,      setSearch]      = useState('')
+  const [brandFilter, setBrandFilter] = useState('')
   const [yearFilter,  setYearFilter]  = useState('')
-  const [priceRange,  setPriceRange]  = useState(0)   // index ใน PRICE_STEPS
+  const [priceRange,  setPriceRange]  = useState(0)
   const [fuelFilter,  setFuelFilter]  = useState('')
-  const [sortBy,      setSortBy]      = useState('default') // 'price_asc' | 'price_desc' | 'year_desc'
+  const [sortBy,      setSortBy]      = useState('default')
   const [minPriceIn,  setMinPriceIn]  = useState('')
   const [maxPriceIn,  setMaxPriceIn]  = useState('')
 
@@ -204,15 +208,16 @@ export default function CarsPage() {
   }
 
   const resetFilters = () => {
-    setSearch(''); setYearFilter(''); setPriceRange(0)
+    setSearch(''); setBrandFilter(''); setYearFilter(''); setPriceRange(0)
     setFuelFilter(''); setSortBy('default')
     setMinPriceIn(''); setMaxPriceIn('')
     setPage(1)
   }
 
-  // ปีที่มีในระบบ
-  const years = useMemo(() =>
-    [...new Set(allCars.map(c => c.year))].sort((a,b) => b - a), [allCars])
+  // derive unique brands from data
+  const brands = useMemo(() =>
+    [...new Set(allCars.map(c => c.brand).filter(Boolean))].sort(), [allCars])
+
   const fuels = useMemo(() =>
     [...new Set(allCars.map(c => (c.fuel||'').toLowerCase()).filter(Boolean))], [allCars])
 
@@ -227,10 +232,10 @@ export default function CarsPage() {
         String(c.year).includes(q)
       )
     }
+    if (brandFilter) list = list.filter(c => c.brand.toLowerCase() === brandFilter.toLowerCase())
     if (yearFilter)  list = list.filter(c => c.year === Number(yearFilter))
     if (fuelFilter)  list = list.filter(c => (c.fuel||'').toLowerCase() === fuelFilter)
 
-    // กรองราคา (ใช้ manual input ถ้ามี ไม่งั้นใช้ slider index)
     const minP = minPriceIn !== '' ? Number(minPriceIn) : PRICE_STEPS[priceRange]
     const maxP = maxPriceIn !== '' ? Number(maxPriceIn) : PRICE_STEPS[priceRange + 1] ?? 999999999
     if (priceRange > 0 || minPriceIn !== '' || maxPriceIn !== '') {
@@ -242,14 +247,37 @@ export default function CarsPage() {
     if (sortBy === 'year_desc')  list = [...list].sort((a,b) => b.year - a.year)
 
     return list
-  }, [allCars, search, yearFilter, fuelFilter, priceRange, minPriceIn, maxPriceIn, sortBy, tab, likes])
+  }, [allCars, search, brandFilter, yearFilter, fuelFilter, priceRange, minPriceIn, maxPriceIn, sortBy, tab, likes])
 
   // paginate
   const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-  const isFiltered = search || yearFilter || fuelFilter || priceRange > 0 || minPriceIn || maxPriceIn
+  const isFiltered = search || brandFilter || yearFilter || fuelFilter || priceRange > 0 || minPriceIn || maxPriceIn
 
-  // reset page when filters change
   const handleFilter = (fn) => { fn(); setPage(1) }
+
+  // Export functions — Standard: JSON only, Pro: CSV + JSON
+  const exportJSON = () => {
+    const blob = new Blob([JSON.stringify(filtered, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = 'cars.json'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportCSV = () => {
+    if (!filtered.length) return
+    const headers = ['id', 'brand', 'model', 'year', 'price', 'color', 'fuel', 'mileage']
+    const rows = filtered.map(c => headers.map(h => `"${c[h] ?? ''}"`).join(','))
+    const csv = [headers.join(','), ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = 'cars.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const canExportJSON = user && (tier === 'standard' || tier === 'pro')
+  const canExportCSV  = user && tier === 'pro'
 
   return (
     <div className="bg-base min-h-screen py-10">
@@ -267,9 +295,30 @@ export default function CarsPage() {
                   : <><Link to="/login" className="text-accent hover:text-secondary font-medium">เข้าสู่ระบบ</Link> เพื่อกดถูกใจ</>}
               </p>
             </div>
-            {!user && (
-              <Link to="/login" className="btn-primary text-sm py-2 px-4">เข้าสู่ระบบ</Link>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Export buttons */}
+              {canExportJSON && filtered.length > 0 && !loading && (
+                <button onClick={exportJSON}
+                  className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                  JSON
+                </button>
+              )}
+              {canExportCSV && filtered.length > 0 && !loading && (
+                <button onClick={exportCSV}
+                  className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                  CSV
+                </button>
+              )}
+              {!user && (
+                <Link to="/login" className="btn-primary text-sm py-2 px-4">เข้าสู่ระบบ</Link>
+              )}
+            </div>
           </div>
         </div>
 
@@ -304,6 +353,17 @@ export default function CarsPage() {
                   className="input text-sm" />
               </div>
 
+              {/* ยี่ห้อ */}
+              <div>
+                <p className="text-xs text-gray-400 mb-1.5">ยี่ห้อ</p>
+                <select value={brandFilter}
+                  onChange={e => handleFilter(() => setBrandFilter(e.target.value))}
+                  className="input text-sm">
+                  <option value="">ทุกยี่ห้อ</option>
+                  {brands.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </div>
+
               {/* ปี */}
               <div>
                 <p className="text-xs text-gray-400 mb-1.5">ปี</p>
@@ -311,7 +371,7 @@ export default function CarsPage() {
                   onChange={e => handleFilter(() => setYearFilter(e.target.value))}
                   className="input text-sm">
                   <option value="">ทุกปี</option>
-                  {years.map(y => <option key={y} value={y}>{y}</option>)}
+                  {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
                 </select>
               </div>
 
@@ -376,11 +436,17 @@ export default function CarsPage() {
               <input type="text" value={search}
                 onChange={e => handleFilter(() => setSearch(e.target.value))}
                 placeholder="ค้นหา..." className="input text-sm flex-1 min-w-[140px]" />
+              <select value={brandFilter}
+                onChange={e => handleFilter(() => setBrandFilter(e.target.value))}
+                className="input text-sm max-w-[130px]">
+                <option value="">ทุกยี่ห้อ</option>
+                {brands.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
               <select value={yearFilter}
                 onChange={e => handleFilter(() => setYearFilter(e.target.value))}
                 className="input text-sm max-w-[100px]">
                 <option value="">ทุกปี</option>
-                {years.map(y => <option key={y} value={y}>{y}</option>)}
+                {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
               <select value={fuelFilter}
                 onChange={e => handleFilter(() => setFuelFilter(e.target.value))}

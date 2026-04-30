@@ -12,7 +12,7 @@ const plans = [
     ctaStyle: 'btn-secondary',
     ctaTo: '/register',
     features: [
-      '100 API calls / เดือน',
+      '500 API calls / เดือน',
       '1 API Key',
       'ดูข้อมูลรถพื้นฐาน',
       'ค้นหารถตามยี่ห้อ',

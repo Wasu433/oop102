@@ -69,6 +69,7 @@ type APIKeyRepository interface {
 	FindByKey(key string) (*APIKey, error)
 	FindByUserID(userID string) ([]APIKey, error)
 	UpdateLastUsed(key string) error
+	DeleteAPIKey(key string) error
 }
 
 // APIUsageRepository = interface สำหรับ usage tracking

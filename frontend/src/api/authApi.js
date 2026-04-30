@@ -20,6 +20,9 @@ export const createApiKey = (userId, name) =>
 export const getUserKeys = (userId) =>
   client.get('/keys', { params: { user_id: userId } })
 
+export const deleteApiKey = (key, userId) =>
+  client.delete(`/keys/${encodeURIComponent(key)}`, { data: { user_id: userId } })
+
 export const getCars = (apiKey, params = {}) =>
   client.get('/cars', { headers: { 'X-API-Key': apiKey }, params })
 

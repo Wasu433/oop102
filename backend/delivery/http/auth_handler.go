@@ -95,16 +95,6 @@ func (h *AuthHandler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// สร้าง API Key อัตโนมัติ
-	apiKey := &domain.APIKey{
-		Key:       generateAPIKey(),
-		UserID:    userID,
-		Name:      "Default Key",
-		IsActive:  true,
-		CreatedAt: now,
-	}
-	h.keyRepo.CreateAPIKey(apiKey)
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(AuthResponse{
@@ -113,7 +103,7 @@ func (h *AuthHandler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		Username:  user.Username,
 		Email:     user.Email,
 		Tier:      user.Tier,
-		APIKey:    apiKey.Key,
+		APIKey:    "",
 		CreatedAt: user.CreatedAt,
 	})
 }

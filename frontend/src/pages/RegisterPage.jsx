@@ -34,7 +34,7 @@ export default function RegisterPage() {
     try {
       const { data } = await register(form.name, form.username, form.email, form.password)
       saveSession({ ...data, name: form.name, plan: isTrial ? 'standard_trial' : 'free', trialEnds: isTrial ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : null })
-      navigate(isTrial ? '/?trial=started' : '/')
+      navigate('/dashboard')
     } catch (err) {
       const msg = err.response?.data?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่'
       setError(msg)
@@ -56,7 +56,7 @@ export default function RegisterPage() {
           </Link>
           <h1 className="text-2xl font-medium text-navy mb-1">สมัครสมาชิก</h1>
           <p className="text-sm text-gray-500">
-            {isTrial ? 'สร้างบัญชีเพื่อเริ่มทดลองใช้ Standard' : 'สร้างบัญชีและรับ API Key ฟรีทันที'}
+            {isTrial ? 'สร้างบัญชีเพื่อเริ่มทดลองใช้ Standard' : 'สร้างบัญชี แล้วสร้าง API Key ได้ใน Dashboard'}
           </p>
         </div>
 

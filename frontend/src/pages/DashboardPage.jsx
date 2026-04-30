@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
   loadSession, saveSession,
-  getRateLimit, createApiKey, getUserKeys,
+  getRateLimit, createApiKey, getUserKeys, deleteApiKey,
 } from '../api/authApi'
 
 const API_BASE = 'http://localhost:8080/api/v1'
@@ -13,6 +13,8 @@ const TIER_CONFIG = {
   standard: { label: 'Standard', limit: 10000,   maxKeys: 3,  color: 'bg-blue-100 text-blue-700',    alertAt: 0.8  },
   pro:      { label: 'Pro',      limit: 1000000, maxKeys: 10, color: 'bg-purple-100 text-purple-700', alertAt: 0.8  },
 }
+
+const YEAR_OPTIONS = Array.from({ length: 27 }, (_, i) => 2026 - i) // 2026 → 2000
 
 function UsageBar({ current, limit }) {
   const pct = limit > 0 ? Math.min((current / limit) * 100, 100) : 0
@@ -41,9 +43,22 @@ function CopyBtn({ text }) {
   )
 }
 
-function KeyCard({ k, isSelected, onSelect, showSelect }) {
+function KeyCard({ k, isSelected, onSelect, showSelect, onDelete }) {
   const [show, setShow] = useState(false)
+  const [confirmDel, setConfirmDel] = useState(false)
+  const [deleting, setDeleting]     = useState(false)
   const masked = k.key.slice(0, 10) + '••••••••••••••••••••'
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      await onDelete(k.key)
+    } finally {
+      setDeleting(false)
+      setConfirmDel(false)
+    }
+  }
+
   return (
     <div className={`border rounded-xl p-4 transition-all ${isSelected ? 'border-accent bg-highlight' : 'border-rim bg-white'}`}>
       <div className="flex items-center justify-between mb-2.5">
@@ -51,13 +66,36 @@ function KeyCard({ k, isSelected, onSelect, showSelect }) {
           <p className="text-sm font-medium text-navy">{k.name}</p>
           {isSelected && <span className="text-[10px] bg-accent text-white px-1.5 py-0.5 rounded-full">ใช้งาน</span>}
         </div>
-        {showSelect && (
-          <button onClick={onSelect}
-            className={`text-xs transition-colors ${isSelected ? 'text-gray-400 cursor-default' : 'text-accent hover:text-secondary'}`}
-            disabled={isSelected}>
-            {isSelected ? 'กำลังใช้' : 'เลือกใช้'}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {showSelect && !confirmDel && (
+            <button onClick={onSelect}
+              className={`text-xs transition-colors ${isSelected ? 'text-gray-400 cursor-default' : 'text-accent hover:text-secondary'}`}
+              disabled={isSelected}>
+              {isSelected ? 'กำลังใช้' : 'เลือกใช้'}
+            </button>
+          )}
+          {!confirmDel ? (
+            <button onClick={() => setConfirmDel(true)}
+              title="ลบ key"
+              className="text-gray-300 hover:text-red-400 transition-colors p-0.5 rounded">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-red-500 font-medium">ลบ key นี้?</span>
+              <button onClick={handleDelete} disabled={deleting}
+                className="text-xs bg-red-500 text-white px-2 py-0.5 rounded hover:bg-red-600 disabled:opacity-50 transition-colors">
+                {deleting ? '...' : 'ลบ'}
+              </button>
+              <button onClick={() => setConfirmDel(false)}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                ยกเลิก
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-2 font-mono text-xs text-gray-600 bg-base rounded-lg px-3 py-2">
         <span className="flex-1 truncate">{show ? k.key : masked}</span>
@@ -80,7 +118,16 @@ const BRANDS = ['','Toyota','Honda','BMW','Mercedes-Benz','Mazda','Isuzu','Ford'
 const FUELS  = ['','hybrid','petrol','diesel','electric']
 const FUEL_TH = { hybrid:'ไฮบริด', petrol:'น้ำมัน', diesel:'ดีเซล', electric:'ไฟฟ้า' }
 
-function ApiTester({ apiKey }) {
+// ป้ายบอกว่า tier นี้ unlock params อะไรได้
+const TIER_PARAMS = {
+  free:     { brand: true, year: false, fuel: false, price: false },
+  standard: { brand: true, year: true,  fuel: false, price: true  },
+  pro:      { brand: true, year: true,  fuel: true,  price: true  },
+}
+
+function ApiTester({ apiKey, tier }) {
+  const params = TIER_PARAMS[tier] || TIER_PARAMS.free
+
   const [brand,    setBrand]    = useState('')
   const [year,     setYear]     = useState('')
   const [fuel,     setFuel]     = useState('')
@@ -89,33 +136,46 @@ function ApiTester({ apiKey }) {
   const [loading,  setLoading]  = useState(false)
   const [result,   setResult]   = useState(null)
   const [err,      setErr]      = useState('')
-  const [tab,      setTab]      = useState('json') // 'json' | 'curl'
+  const [tab,      setTab]      = useState('json')
 
   const buildParams = () => {
     const p = {}
     if (brand)    p.brand    = brand
-    if (year)     p.year     = year
-    if (fuel)     p.fuel     = fuel
-    if (minPrice) p.minPrice = minPrice
-    if (maxPrice) p.maxPrice = maxPrice
+    if (params.year  && year)     p.year     = year
+    if (params.price && minPrice) p.minPrice = minPrice
+    if (params.price && maxPrice) p.maxPrice = maxPrice
+    // fuel is sent only for display in curl; filtered client-side
+    if (params.fuel  && fuel)     p.fuel     = fuel
     return p
   }
 
   const buildCurl = () => {
-    const params = buildParams()
-    const qs = Object.entries(params).map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&')
+    const p = buildParams()
+    const qs = Object.entries(p).map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&')
     const url = `${API_BASE}/cars${qs ? '?' + qs : ''}`
-    return `curl -X GET "${url}" \\\n  -H "X-API-Key: ${apiKey}"`
+    return `curl -X GET "${url}" \\\n  -H "X-API-Key: ${apiKey || '<YOUR_API_KEY>'}"`
   }
 
   const runTest = async () => {
     setLoading(true); setErr(''); setResult(null)
     try {
+      // send all supported backend params (brand, year, price); fuel filtered client-side
+      const backendParams = {}
+      if (brand)    backendParams.brand    = brand
+      if (params.year  && year)     backendParams.year     = year
+      if (params.price && minPrice) backendParams.minPrice = minPrice
+      if (params.price && maxPrice) backendParams.maxPrice = maxPrice
+
       const { data } = await axios.get(`${API_BASE}/cars`, {
         headers: { 'X-API-Key': apiKey },
-        params: buildParams(),
+        params: backendParams,
       })
-      setResult(Array.isArray(data) ? data : [])
+      let cars = Array.isArray(data) ? data : []
+      // Pro tier: filter by fuel client-side (backend doesn't support fuel param yet)
+      if (params.fuel && fuel) {
+        cars = cars.filter(c => (c.fuel || '').toLowerCase() === fuel)
+      }
+      setResult(cars)
       setTab('json')
     } catch (e) {
       setErr(e.response?.data?.error || e.response?.data || 'เกิดข้อผิดพลาด')
@@ -144,8 +204,23 @@ function ApiTester({ apiKey }) {
         <code className="text-green-300 text-xs font-mono flex-1 truncate">{API_BASE}/cars</code>
       </div>
 
+      {/* Tier feature banner */}
+      {tier === 'free' && (
+        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-4">
+          <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <p className="text-xs text-blue-700">
+            แผน Free: ค้นหาตามยี่ห้อได้เท่านั้น —{' '}
+            <Link to="/pricing" className="underline font-medium">อัปเกรด Standard</Link>{' '}
+            เพื่อกรองราคาและปี
+          </p>
+        </div>
+      )}
+
       {/* Parameters */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+        {/* brand — all tiers */}
         <div>
           <label className="block text-xs text-gray-400 mb-1">brand</label>
           <select value={brand} onChange={e => setBrand(e.target.value)} className="input text-sm">
@@ -153,30 +228,71 @@ function ApiTester({ apiKey }) {
             {BRANDS.filter(Boolean).map(b => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">year</label>
-          <select value={year} onChange={e => setYear(e.target.value)} className="input text-sm">
-            <option value="">ทั้งหมด</option>
-            {[2024,2023,2022,2021].map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">fuel</label>
-          <select value={fuel} onChange={e => setFuel(e.target.value)} className="input text-sm">
-            <option value="">ทั้งหมด</option>
-            {FUELS.filter(Boolean).map(f => <option key={f} value={f}>{FUEL_TH[f]||f}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">minPrice (฿)</label>
-          <input type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)}
-            placeholder="เช่น 500000" className="input text-sm" min={0} />
-        </div>
-        <div>
-          <label className="block text-xs text-gray-400 mb-1">maxPrice (฿)</label>
-          <input type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)}
-            placeholder="เช่น 2000000" className="input text-sm" min={0} />
-        </div>
+
+        {/* year — Standard + Pro */}
+        {params.year ? (
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">year</label>
+            <select value={year} onChange={e => setYear(e.target.value)} className="input text-sm">
+              <option value="">ทั้งหมด</option>
+              {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+        ) : (
+          <div className="opacity-40">
+            <label className="block text-xs text-gray-400 mb-1">year <span className="text-[10px] ml-1 bg-gray-200 text-gray-500 rounded px-1">Standard+</span></label>
+            <select disabled className="input text-sm cursor-not-allowed bg-gray-50">
+              <option>ทั้งหมด</option>
+            </select>
+          </div>
+        )}
+
+        {/* fuel — Pro only */}
+        {params.fuel ? (
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">fuel</label>
+            <select value={fuel} onChange={e => setFuel(e.target.value)} className="input text-sm">
+              <option value="">ทั้งหมด</option>
+              {FUELS.filter(Boolean).map(f => <option key={f} value={f}>{FUEL_TH[f]||f}</option>)}
+            </select>
+          </div>
+        ) : (
+          <div className="opacity-40">
+            <label className="block text-xs text-gray-400 mb-1">fuel <span className="text-[10px] ml-1 bg-purple-100 text-purple-600 rounded px-1">Pro</span></label>
+            <select disabled className="input text-sm cursor-not-allowed bg-gray-50">
+              <option>ทั้งหมด</option>
+            </select>
+          </div>
+        )}
+
+        {/* minPrice — Standard + Pro */}
+        {params.price ? (
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">minPrice (฿)</label>
+            <input type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)}
+              placeholder="เช่น 500000" className="input text-sm" min={0} />
+          </div>
+        ) : (
+          <div className="opacity-40">
+            <label className="block text-xs text-gray-400 mb-1">minPrice <span className="text-[10px] ml-1 bg-gray-200 text-gray-500 rounded px-1">Standard+</span></label>
+            <input type="number" disabled placeholder="—" className="input text-sm cursor-not-allowed bg-gray-50" />
+          </div>
+        )}
+
+        {/* maxPrice — Standard + Pro */}
+        {params.price ? (
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">maxPrice (฿)</label>
+            <input type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)}
+              placeholder="เช่น 2000000" className="input text-sm" min={0} />
+          </div>
+        ) : (
+          <div className="opacity-40">
+            <label className="block text-xs text-gray-400 mb-1">maxPrice <span className="text-[10px] ml-1 bg-gray-200 text-gray-500 rounded px-1">Standard+</span></label>
+            <input type="number" disabled placeholder="—" className="input text-sm cursor-not-allowed bg-gray-50" />
+          </div>
+        )}
+
         <div className="flex items-end">
           <button onClick={runTest} disabled={loading || !apiKey}
             className="btn-primary w-full py-2 text-sm disabled:opacity-60 flex items-center justify-center gap-2">
@@ -190,7 +306,6 @@ function ApiTester({ apiKey }) {
       {/* Result */}
       {(result !== null || err) && (
         <div className="mt-2">
-          {/* Tab bar */}
           <div className="flex items-center justify-between mb-2">
             <div className="flex gap-1">
               {['json','curl'].map(t => (
@@ -264,20 +379,17 @@ export default function DashboardPage() {
 
   useEffect(() => { if (!user) navigate('/login') }, [])
 
-  // โหลด keys จาก backend
   useEffect(() => {
     if (!user) return
     getUserKeys(user.id)
       .then(({ data }) => {
         const list = Array.isArray(data) ? data : []
         setKeys(list)
-        // sync api_key ใน session เป็น key แรก (ถ้าเปลี่ยน)
         if (list.length > 0 && list[0].key !== user.api_key) {
           saveSession({ ...user, api_key: list[0].key })
         }
       })
       .catch(() => {
-        // fallback: ใช้ key จาก session
         if (user.api_key) setKeys([{ key: user.api_key, name: 'Default Key', created_at: user.created_at || new Date().toISOString(), user_id: user.id }])
       })
       .finally(() => setLoadingKeys(false))
@@ -300,6 +412,15 @@ export default function DashboardPage() {
 
   useEffect(() => { fetchUsage() }, [keys, selectedIdx])
 
+  const handleDeleteKey = async (keyValue) => {
+    await deleteApiKey(keyValue, user.id)
+    setKeys(prev => {
+      const next = prev.filter(k => k.key !== keyValue)
+      setSelectedIdx(i => Math.min(i, Math.max(0, next.length - 1)))
+      return next
+    })
+  }
+
   const handleCreate = async () => {
     if (!newName.trim()) { setCreateErr('กรุณาระบุชื่อ key'); return }
     if (keys.length >= cfg.maxKeys) { setCreateErr(`แผน ${cfg.label} สร้างได้สูงสุด ${cfg.maxKeys} keys`); return }
@@ -318,8 +439,16 @@ export default function DashboardPage() {
   if (!user) return null
 
   const usedPct   = usage ? Math.min((usage.current / usage.daily_limit) * 100, 100) : 0
-  const showAlert = cfg.alertAt && usage && usedPct >= cfg.alertAt * 100
   const upgradeTo = tier === 'free' ? 'Standard' : tier === 'standard' ? 'Pro' : null
+
+  // API Usage Alert: always visible for Standard and Pro
+  const showUsageAlert = (tier === 'standard' || tier === 'pro') && !loadingUsage && usage !== null
+
+  const alertStyle = usedPct >= 90
+    ? { wrap: 'bg-red-50 border-red-200',    icon: 'text-red-500',    text: 'text-red-800',    sub: 'text-red-700'    }
+    : usedPct >= 80
+    ? { wrap: 'bg-yellow-50 border-yellow-200', icon: 'text-yellow-500', text: 'text-yellow-800', sub: 'text-yellow-700' }
+    : { wrap: 'bg-blue-50 border-blue-200',   icon: 'text-blue-500',   text: 'text-blue-800',   sub: 'text-blue-700'   }
 
   return (
     <div className="bg-base min-h-screen py-10">
@@ -339,17 +468,19 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        {/* Alert */}
-        {showAlert && (
-          <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-200 rounded-xl px-5 py-4">
-            <svg className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* API Usage Alert — แสดงตลอดสำหรับ Standard และ Pro */}
+        {showUsageAlert && (
+          <div className={`flex items-start gap-3 rounded-xl px-5 py-4 border ${alertStyle.wrap}`}>
+            <svg className={`w-5 h-5 flex-shrink-0 mt-0.5 ${alertStyle.icon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
             <div>
-              <p className="text-sm font-medium text-yellow-800">API Usage Alert</p>
-              <p className="text-xs text-yellow-700 mt-0.5">
-                ใช้ไปแล้ว {usedPct.toFixed(0)}% — {usage.current.toLocaleString()} / {usage.daily_limit.toLocaleString()} requests
-                {upgradeTo && <> — <Link to="/pricing" className="underline font-medium">อัปเกรดเป็น {upgradeTo}</Link> เพื่อเพิ่มโควต้า</>}
+              <p className={`text-sm font-medium ${alertStyle.text}`}>API Usage Alert</p>
+              <p className={`text-xs mt-0.5 ${alertStyle.sub}`}>
+                ใช้ไปแล้ว {usedPct.toFixed(0)}% — {(usage.current || 0).toLocaleString()} / {(usage.daily_limit || cfg.limit).toLocaleString()} requests วันนี้
+                {usedPct >= 80 && upgradeTo && (
+                  <> — <Link to="/pricing" className="underline font-medium">อัปเกรดเป็น {upgradeTo}</Link> เพื่อเพิ่มโควต้า</>
+                )}
               </p>
             </div>
           </div>
@@ -464,6 +595,7 @@ export default function DashboardPage() {
                   isSelected={i === selectedIdx}
                   onSelect={() => setSelectedIdx(i)}
                   showSelect={tier !== 'free' && keys.length > 1}
+                  onDelete={handleDeleteKey}
                 />
               ))}
             </div>
@@ -476,8 +608,8 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* API Tester */}
-        <ApiTester apiKey={keys[selectedIdx]?.key || user.api_key || ''} />
+        {/* API Tester — restricted by tier */}
+        <ApiTester apiKey={keys[selectedIdx]?.key || user.api_key || ''} tier={tier} />
 
         {/* Quick Links */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
