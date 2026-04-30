@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS cars (
     id SERIAL PRIMARY KEY,
-    make TEXT NOT NULL,
+        brand TEXT NOT NULL,
     model TEXT NOT NULL,
     year INTEGER NOT NULL,
     price NUMERIC(12,2) NOT NULL,
@@ -12,10 +12,10 @@ CREATE TABLE IF NOT EXISTS cars (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_cars_unique
-ON cars (make, model, year, price, color, fuel, mileage);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_cars_unique
+    ON cars (brand, model, year, price, color, fuel, mileage);
 
-CREATE INDEX IF NOT EXISTS idx_cars_make ON cars(make);
+    CREATE INDEX IF NOT EXISTS idx_cars_brand ON cars(brand);
 CREATE INDEX IF NOT EXISTS idx_cars_model ON cars(model);
 CREATE INDEX IF NOT EXISTS idx_cars_year ON cars(year);
 CREATE INDEX IF NOT EXISTS idx_cars_fuel ON cars(fuel);
