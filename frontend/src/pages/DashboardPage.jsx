@@ -9,7 +9,7 @@ import {
 const API_BASE = 'http://localhost:8080/api/v1'
 
 const TIER_CONFIG = {
-  free:     { label: 'Starter',  limit: 100,     maxKeys: 1,  color: 'bg-gray-100 text-gray-600',    alertAt: null },
+  free:     { label: 'Starter',  limit: 500,     maxKeys: 1,  color: 'bg-gray-100 text-gray-600',    alertAt: null },
   standard: { label: 'Standard', limit: 10000,   maxKeys: 3,  color: 'bg-blue-100 text-blue-700',    alertAt: 0.8  },
   pro:      { label: 'Pro',      limit: 1000000, maxKeys: 10, color: 'bg-purple-100 text-purple-700', alertAt: 0.8  },
 }

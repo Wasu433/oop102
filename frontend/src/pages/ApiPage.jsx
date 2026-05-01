@@ -354,7 +354,7 @@ print(resp.json())`,
                       <Link to="/login" className="text-accent hover:underline font-medium">เข้าสู่ระบบ</Link>
                     </p>
                     <div className="bg-base rounded-lg px-4 py-3 border border-rim text-xs text-gray-500">
-                      ทุกบัญชีใหม่เริ่มด้วยแผน <strong className="text-navy">Free</strong> — 100 requests/วัน ไม่ต้องใส่บัตรเครดิต
+                      ทุกบัญชีใหม่เริ่มด้วยแผน <strong className="text-navy">Free</strong> — 500 requests/วัน ไม่ต้องใส่บัตรเครดิต
                     </div>
                   </Step>
 
@@ -468,7 +468,7 @@ print(resp.json())`,
                     </thead>
                     <tbody className="divide-y divide-rim">
                       {[
-                        { tier: 'Free',     color: 'bg-gray-100 text-gray-600',     calls: '100',       keys: '1',  params: 'brand' },
+                        { tier: 'Free',     color: 'bg-gray-100 text-gray-600',     calls: '500',       keys: '1',  params: 'brand' },
                         { tier: 'Standard', color: 'bg-blue-100 text-blue-700',     calls: '10,000',    keys: '3',  params: 'brand, year, minPrice, maxPrice' },
                         { tier: 'Pro',      color: 'bg-purple-100 text-purple-700', calls: '1,000,000', keys: '10', params: 'brand, year, minPrice, maxPrice, fuel' },
                       ].map(r => (

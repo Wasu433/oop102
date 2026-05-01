@@ -47,7 +47,7 @@ const (
 
 // Rate limit values
 const (
-	FreeTierLimit       = 100      // 100 requests/day
+	FreeTierLimit       = 500      // 500 requests/day
 	StandardTierLimit   = 10000    // 50,000 requests/day
 	ProTierLimit        = 1000000    // 10,000 requests/day
 	
